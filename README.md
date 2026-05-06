@@ -2,6 +2,8 @@
 
 IteraSpec is a human-approved AI workflow for building new software or changing existing systems through specification, planning, and one-task-at-a-time implementation.
 
+![IteraSpec infographic](info.png)
+
 ## Usage
 
 Give your AI assistant one of these instructions:
