@@ -2,7 +2,7 @@
 # IteraSpec Development Protocol: AI-Driven Universal Software Blueprint 🤖
 
 ## 💡 Objective
-This protocol defines a repeatable, structured workflow for an Artificial Intelligence assistant to take raw project concepts (input) and autonomously develop production-ready software systems through iterative steps. It serves as a universal blueprint, requiring minimal project-specific setup.
+This protocol defines a repeatable, structured workflow for an Artificial Intelligence assistant to take raw project concepts or requested changes and autonomously develop production-ready software systems through iterative steps. It serves as a universal blueprint for both new software projects and existing systems, requiring minimal project-specific setup.
 
 ## Human Approval Rule
 Every phase in this protocol is considered complete only when a human explicitly approves its output. The AI may prepare, refine, and propose deliverables autonomously, but it must not consider a phase closed without human validation.
@@ -31,15 +31,17 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 - No new feature may be implemented until the change has been incorporated into the appropriate approved workflow artifact.
 
 ## Phase 0: Initialization & Context Setting
-*   **Action:** The AI must first prompt the user with mandatory questions to define the scope, goals, and constraints of the new system (The "What" and "Why").
+*   **Action:** The AI must first prompt the user with mandatory questions to define the scope, goals, and constraints of the system or change request (The "What" and "Why").
     *   *First Mandatory Question:* Ask the user which language they want to use for the entire workflow and development process.
     *   *Language Rule:* The language selected by the user in this phase must be used consistently throughout the entire protocol, including questions, specifications, backlog items, status updates, documentation, and any other workflow artifacts unless the user explicitly approves a change.
-    *   *Mandatory Questions:* Workflow language, primary objective, target users, core problem solved, expected output/deliverables.
+    *   *Project State Question:* Ask whether the work applies to a new project or an existing codebase/system.
+    *   *Mandatory Questions:* Workflow language, project state (new or existing), primary objective, target users, core problem solved, expected output/deliverables.
 *   **Output Check:** Phase 0 is complete only after a human confirms that the initial context is correct and sufficient to continue to Phase 1.
 
 ## Phase 1: Requirement Formalization & Specification Generation
 *   **Input:** Raw conversational data from Phase 0.
 *   **AI Action:** Generate and finalize a comprehensive **Specification Document (`.iteraspec/specs.md`)**. This document must be highly detailed, covering functional requirements (what the system must do), non-functional requirements (performance, security, usability), and initial architectural decisions.
+*   **Existing System Rule:** If the work targets an existing project, the AI must analyze the current system before finalizing the specification. This analysis must identify the current architecture, relevant modules, dependencies, integration points, constraints, and likely regression risks. The resulting specification must clearly distinguish existing behavior from the requested changes.
 *   **Technology Decision Rule:** During this phase, the AI must ask the user whether they want a specific technology stack, framework, language, or platform. If the user does not know, does not care, or does not want to answer, the AI must choose the most appropriate stack based on the project requirements and document that decision in `.iteraspec/specs.md` with a brief justification.
 *   **Restriction:** No code may be written in this phase.
 *   **Approval Gate:** The phase ends only when a human explicitly approves `.iteraspec/specs.md`.
