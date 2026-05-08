@@ -13,7 +13,7 @@ The AI must not write, modify, or generate production code in any phase other th
 This prohibition includes project scaffolding, repository bootstrapping, framework initialization, dependency setup, configuration files for executable software, build files such as `pom.xml`, `package.json`, `build.gradle`, Docker-related runtime files, source files, test files, and any other implementation artifact.
 
 ## Single-Task Execution Rule
-The AI must implement only one task at a time. It must not code multiple backlog items in parallel, and it must not begin a new implementation task until the current task has been moved to `🔴 Done` or `⚫ Blocked` and a human has approved that outcome.
+The AI must implement only one task at a time. It must not code multiple backlog items in parallel, and it must not begin a new implementation task until the current task has been moved to `🟢 Done` or `⚫ Blocked` and a human has approved that outcome.
 
 ## Feature Workspace Rule
 Each full IteraSpec cycle for a new feature, functionality, or change request must use its own dedicated workspace inside `.iteraspec/`, using the structure `.iteraspec/<feature_name>/`.
@@ -77,16 +77,16 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 *   **Granularity Rule:** The AI must avoid artificial task splitting done only to inflate the backlog, and it must avoid merging unrelated work into oversized tasks just to reduce the count.
 *   **Justification Rule:** For each backlog item, the AI should be able to justify why that task exists as a separate unit of work and why it is not better merged with an adjacent item or split further.
 *   **Structure Rule:** Backlog items must be prioritized and categorized:
-    *   `🟢 To Do`: High priority tasks ready for implementation.
+    *   `🔴 To Do`: High priority tasks ready for implementation.
     *   `🟡 In Progress`: The single task currently being implemented. Only one task may exist in this state at any time.
-    *   `🔴 Done`: Tasks completed through relevant testing or explicit user approval.
+    *   `🟢 Done`: Tasks completed through relevant testing or explicit user approval.
     *   `⚫ Blocked`: Tasks that cannot continue due to a failure, dependency, missing decision, environment issue, or external constraint. Each blocked task must include a short description of the blocker.
 *   **Approval Gate:** The backlog is considered finalized only after human approval.
 *   **Goal:** Create a clear roadmap that guides development incrementally, ensuring traceability and manageability.
 
 ## Phase 3: Iterative Development Loop (The Core Cycle)
 This phase repeats until the backlog is empty or marked complete by the user.
-1.  **Select Task:** Move one task from `🟢 To Do` to `🟡 In Progress`.
+1.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
     The AI must wait for explicit human approval before starting implementation of the selected task.
 2.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
 3.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
@@ -94,7 +94,7 @@ This phase repeats until the backlog is empty or marked complete by the user.
 5.  **Refactor & Review:** Review the code against the original specifications and improve structure/readability.
 6.  **Report Readiness:** If the task satisfies the relevant tests or appears implementation-complete, the AI must report that the current task appears ready.
 7.  **Provide Manual Validation Steps:** Before asking for approval, the AI must explain how the human can manually test or validate the task, including the expected successful result.
-8.  **Resolve Status:** The task may move from `🟡 In Progress` to `🔴 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass.
+8.  **Resolve Status:** The task may move from `🟡 In Progress` to `🟢 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass.
 9.  **Retry Rule:** If implementation or validation fails, the AI may retry the task up to 3 times. After the third failed attempt, the task must be moved to `⚫ Blocked`.
 10.  **Handle Failure or Blockers:** If the task cannot continue, fails validation 3 times, or reaches another blocking condition, move it from `🟡 In Progress` to `⚫ Blocked` and record a short description of the blocker and why the task could not be completed.
 11.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state.
@@ -103,7 +103,7 @@ This phase repeats until the backlog is empty or marked complete by the user.
 Approval of `.iteraspec/<feature_name>/specs.md` or approval of the backlog does not authorize implementation by itself. After Phase 2 is approved, the AI must remain in planning mode until a human explicitly authorizes Phase 3 or explicitly approves the start of a specific backlog task.
 
 ## Phase 4: Finalization & Deployment Readiness
-*   **Action:** Once all tasks are complete (`🟢 To Do` is empty), the AI performs a final review of the entire codebase.
+*   **Action:** Once all tasks are complete (`🔴 To Do` is empty), the AI performs a final review of the entire codebase.
 *   **Restriction:** No new feature code may be written in this phase. Only documentation, validation, and final readiness checks are allowed unless a human explicitly sends the work back to implementation.
 *   **Output:** Update documentation (e.g., README, deployment guide) and provide a summary of how the system runs locally and how it can be deployed in production.
 *   **Approval Gate:** The protocol is complete only when a human approves the final system state and documentation.

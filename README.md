@@ -17,3 +17,5 @@ Follow `ITERASPEC.md` strictly as the main protocol for this project. Read it co
 ```
 
 Then let it start from `Phase 0` and approve each phase and task explicitly.
+
+Each feature or functionality handled with IteraSpec should keep its own workflow artifacts inside `.iteraspec/<feature_name>/`, for example `.iteraspec/user-authentication/specs.md`, `.iteraspec/user-authentication/backlog.md`, and `.iteraspec/user-authentication/current_task.md`.

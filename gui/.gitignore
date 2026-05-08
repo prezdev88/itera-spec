@@ -1,0 +1,12 @@
+.venv/
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.agents/
+.codex/
+
+# Archivos temporales del editor o del sistema
+.DS_Store
+Thumbs.db
