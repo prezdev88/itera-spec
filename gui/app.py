@@ -366,6 +366,44 @@ h1 {
   margin: 0 auto;
   padding: 28px 0 48px;
   gap: 22px;
+  align-items: start;
+}
+
+.sidebar-toggle-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+}
+
+.sidebar-toggle::before {
+  content: "Ocultar menu";
+}
+
+.reader-shell:has(.sidebar-toggle-input:checked) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.reader-shell:has(.sidebar-toggle-input:checked) .sidebar {
+  display: none;
+}
+
+.reader-shell:has(.sidebar-toggle-input:checked) .sidebar-toggle::before {
+  content: "Mostrar menu";
 }
 
 .sidebar,
@@ -434,6 +472,12 @@ h1 {
   padding: 36px 38px;
 }
 
+.document-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
 .document-header {
   padding-bottom: 20px;
   margin-bottom: 20px;
@@ -495,7 +539,6 @@ h1 {
 }
 
 .status-summary-card,
-.task-card,
 .focus-card,
 .task-panel,
 .empty-task-card {
@@ -503,6 +546,13 @@ h1 {
   border-radius: 20px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.62);
+}
+
+.task-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .status-summary-card strong {
@@ -597,7 +647,7 @@ h1 {
 }
 
 .task-card-title-row h3 {
-  margin: 0 0 12px;
+  margin: 0;
 }
 
 .task-state-dot {
@@ -629,6 +679,139 @@ h1 {
 .task-panel ul {
   margin: 0;
   padding-left: 1.1rem;
+}
+
+.task-card-button {
+  display: flex;
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.task-card-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(15, 118, 110, 0.28);
+  box-shadow: 0 18px 40px rgba(87, 64, 30, 0.12);
+}
+
+.task-card-button:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid rgba(15, 118, 110, 0.45);
+  outline-offset: 3px;
+}
+
+.task-card-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.task-card-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.task-code-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.22rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(31, 28, 23, 0.08);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.task-card-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.task-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.56);
+  z-index: 20;
+}
+
+.task-modal:target {
+  display: flex;
+}
+
+.task-modal-dialog {
+  width: min(680px, 100%);
+  max-height: min(80vh, 720px);
+  overflow: auto;
+  padding: 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 251, 245, 0.98);
+  box-shadow: 0 28px 100px rgba(17, 24, 39, 0.28);
+}
+
+.task-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.task-modal-header h3 {
+  margin: 8px 0 0;
+}
+
+.task-modal-body {
+  display: grid;
+  gap: 16px;
+}
+
+.task-modal-panel {
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.task-modal-panel h4 {
+  margin: 0 0 12px;
+}
+
+.task-modal-panel p,
+.task-modal-panel ul {
+  margin: 0;
+}
+
+.task-modal-panel ul {
+  padding-left: 1.1rem;
+}
+
+.modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  background: rgba(31, 28, 23, 0.08);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
 }
 
 .current-task-view {
@@ -684,6 +867,10 @@ code {
     padding-top: 20px;
   }
 
+  .document-toolbar {
+    justify-content: flex-start;
+  }
+
   .sidebar {
     position: static;
   }
@@ -703,7 +890,8 @@ code {
 }
 """
 
-KNOWN_DOCUMENTS = ("specs.md", "backlog.md", "current_task.md")
+KNOWN_DOCUMENTS = ("status.md", "specs.md", "backlog.md", "board.md", "current_task.md")
+GLOBAL_WORKSPACE_NAME = "_global"
 BACKLOG_SECTION_PATTERNS = (
     (re.compile(r"^##\s+`?🔴\s+To Do`?\s*$"), ("todo", "To Do")),
     (re.compile(r"^##\s+`?🟢\s+To Do`?\s*$"), ("todo", "To Do")),
@@ -744,8 +932,11 @@ class IteraSpecDocumentContent:
 
 @dataclass(slots=True)
 class BacklogTask:
+    identifier: str
     title: str
+    refinement_id: str
     bullets: list[str]
+    detail_lines: list[str]
 
 
 @dataclass(slots=True)
@@ -753,6 +944,19 @@ class BacklogSection:
     key: str
     label: str
     tasks: list[BacklogTask]
+
+
+@dataclass(slots=True)
+class BoardItem:
+    identifier: str
+    note: str
+
+
+@dataclass(slots=True)
+class BoardSection:
+    key: str
+    label: str
+    items: list[BoardItem]
 
 
 @dataclass(slots=True)
@@ -887,6 +1091,7 @@ def create_app() -> FastAPI:
             loaded.workspace_name,
             loaded.document.name,
             loaded.content,
+            iteraspec_root,
         )
 
     return app
@@ -910,6 +1115,9 @@ def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace
         return []
 
     workspaces: list[IteraSpecWorkspace] = []
+    global_workspace = _discover_global_workspace(root)
+    if global_workspace is not None:
+        workspaces.append(global_workspace)
     for candidate in sorted(root.iterdir(), key=lambda path: path.name):
         if not candidate.is_dir():
             continue
@@ -921,6 +1129,24 @@ def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace
             )
         )
     return workspaces
+
+
+def _discover_global_workspace(root_dir: Path) -> IteraSpecWorkspace | None:
+    status_path = root_dir / "status.md"
+    if not status_path.exists() or not status_path.is_file():
+        return None
+
+    return IteraSpecWorkspace(
+        name=GLOBAL_WORKSPACE_NAME,
+        relative_path=root_dir.relative_to(root_dir.parent).as_posix(),
+        documents=[
+            IteraSpecDocument(
+                name="status.md",
+                relative_path=status_path.relative_to(root_dir.parent).as_posix(),
+                kind="status",
+            )
+        ],
+    )
 
 
 def _discover_workspace_documents(workspace_dir: Path, root_dir: Path) -> list[IteraSpecDocument]:
@@ -1086,7 +1312,16 @@ def _replace_code_spans(text: str) -> str:
     return "".join(rendered)
 
 
-def render_specialized_document(document_name: str, content: str) -> str | None:
+def render_specialized_document(
+    document_name: str,
+    content: str,
+    workspace_name: str,
+    iteraspec_root: Path,
+) -> str | None:
+    if document_name == "status.md":
+        return render_status_view(content)
+    if document_name == "board.md":
+        return render_board_view(content, workspace_name, iteraspec_root)
     if document_name == "backlog.md":
         return render_backlog_view(content)
     if document_name == "current_task.md":
@@ -1094,13 +1329,84 @@ def render_specialized_document(document_name: str, content: str) -> str | None:
     return None
 
 
+def render_status_view(content: str) -> str:
+    key_values = parse_status_key_values(content)
+    if not key_values:
+        return (
+            "<div class=\"specialized-view\">"
+            "<section class=\"focus-card\">"
+            "<p class=\"section-kicker\">Estado Global</p>"
+            "<h2>status.md</h2>"
+            "<p>No se detectó una estructura resumible. Se muestra como Markdown estándar.</p>"
+            "</section>"
+            f"{render_markdown(content)}"
+            "</div>"
+        )
+
+    cards = "".join(
+        (
+            "<article class=\"status-summary-card\">"
+            f"<span>{html.escape(label)}</span>"
+            f"<strong>{html.escape(value)}</strong>"
+            "</article>"
+        )
+        for label, value in key_values[:8]
+    )
+    return (
+        "<div class=\"specialized-view\">"
+        "<section class=\"focus-card\">"
+        "<p class=\"section-kicker\">Estado Global</p>"
+        "<h2>Resumen de reanudación</h2>"
+        "<p>Checkpoint persistido en <code>.iteraspec/status.md</code>.</p>"
+        "</section>"
+        f"<section class=\"status-summary-grid\">{cards}</section>"
+        "</div>"
+    )
+
+
 def render_backlog_view(content: str) -> str:
-    sections = parse_backlog(content)
+    tasks = parse_task_catalog(content)
+    tasks_by_id = {task.identifier: task for task in tasks if task.identifier}
+    refinement_index = build_refinement_index(tasks_by_id)
+    summary = (
+        "<article class=\"status-summary-card\">"
+        "<span>Catalogo</span>"
+        f"<strong>{len(tasks)}</strong>"
+        "<span>tareas definidas</span>"
+        "</article>"
+    )
+    board = (
+        "<section class=\"backlog-column\">"
+        "<header><span class=\"status-chip done\">Task Catalog</span></header>"
+        f"{render_backlog_tasks(tasks, 'catalog', refinement_index, tasks_by_id)}"
+        "</section>"
+    )
+    return (
+        "<div class=\"specialized-view\">"
+        "<section class=\"status-summary-grid\">"
+        f"{summary}"
+        "</section>"
+        "<section class=\"backlog-board\">"
+        f"{board}"
+        "</section>"
+        "</div>"
+    )
+
+
+def render_board_view(content: str, workspace_name: str, iteraspec_root: Path) -> str:
+    sections = parse_board(content)
+    tasks_by_id = read_task_catalog(workspace_name, iteraspec_root)
+    refinement_index = build_refinement_index(tasks_by_id)
+    if not sections:
+        legacy = parse_legacy_backlog_board(content)
+        if legacy:
+            sections = legacy
+    sections = order_board_sections(sections)
     summary = "".join(
         (
             "<article class=\"status-summary-card\">"
             f"<span class=\"status-chip {section.key}\">{section.label}</span>"
-            f"<strong>{len(section.tasks)}</strong>"
+            f"<strong>{len(section.items)}</strong>"
             "<span>tareas</span>"
             "</article>"
         )
@@ -1110,7 +1416,7 @@ def render_backlog_view(content: str) -> str:
         (
             "<section class=\"backlog-column\">"
             f"<header><span class=\"status-chip {section.key}\">{section.label}</span></header>"
-            f"{render_backlog_tasks(section.tasks)}"
+            f"{render_board_items(section.items, section.key, tasks_by_id, refinement_index)}"
             "</section>"
         )
         for section in sections
@@ -1156,38 +1462,101 @@ def render_current_task_view(content: str) -> str:
     )
 
 
-def parse_backlog(content: str) -> list[BacklogSection]:
-    sections: list[BacklogSection] = []
+def parse_task_catalog(content: str) -> list[BacklogTask]:
+    tasks: list[BacklogTask] = []
+    current_task: BacklogTask | None = None
+
+    for raw_line in content.splitlines():
+        line = raw_line.rstrip()
+
+        if line.startswith("### "):
+            identifier, _ = split_task_title(line[4:].strip())
+            current_task = BacklogTask(
+                identifier=identifier,
+                title=line[4:].strip(),
+                refinement_id="",
+                bullets=[],
+                detail_lines=[],
+            )
+            tasks.append(current_task)
+            continue
+
+        if current_task is None:
+            continue
+
+        if line.startswith("## "):
+            current_task = None
+            continue
+
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        current_task.detail_lines.append(stripped)
+        if stripped.startswith("- "):
+            current_task.bullets.append(stripped[2:].strip())
+
+    for task in tasks:
+        task.refinement_id = extract_refinement_id(task.detail_lines)
+
+    return tasks
+
+
+def parse_board(content: str) -> list[BoardSection]:
+    sections: list[BoardSection] = []
     current_key = None
     current_label = None
-    current_tasks: list[BacklogTask] = []
-    current_task: BacklogTask | None = None
+    current_items: list[BoardItem] = []
 
     for raw_line in content.splitlines():
         line = raw_line.rstrip()
         section = _match_backlog_section(line)
         if section is not None:
             if current_key is not None:
-                sections.append(BacklogSection(current_key, current_label or current_key, current_tasks))
+                sections.append(BoardSection(current_key, current_label or current_key, current_items))
             current_key, current_label = section
-            current_tasks = []
-            current_task = None
+            current_items = []
+            continue
+
+        if current_key is None:
+            continue
+
+        item = _parse_board_item(line)
+        if item is not None:
+            current_items.append(item)
+
+    if current_key is not None:
+        sections.append(BoardSection(current_key, current_label or current_key, current_items))
+
+    return sections
+
+
+def parse_legacy_backlog_board(content: str) -> list[BoardSection]:
+    sections: list[BoardSection] = []
+    current_key = None
+    current_label = None
+    current_items: list[BoardItem] = []
+
+    for raw_line in content.splitlines():
+        line = raw_line.rstrip()
+        section = _match_backlog_section(line)
+        if section is not None:
+            if current_key is not None:
+                sections.append(BoardSection(current_key, current_label or current_key, current_items))
+            current_key, current_label = section
+            current_items = []
             continue
 
         if current_key is None:
             continue
 
         if line.startswith("### "):
-            current_task = BacklogTask(title=line[4:].strip(), bullets=[])
-            current_tasks.append(current_task)
-            continue
-
-        if line.startswith("- ") and current_task is not None:
-            current_task.bullets.append(line[2:].strip())
-            continue
+            identifier, _ = split_task_title(line[4:].strip())
+            if identifier:
+                current_items.append(BoardItem(identifier=identifier, note=""))
 
     if current_key is not None:
-        sections.append(BacklogSection(current_key, current_label or current_key, current_tasks))
+        sections.append(BoardSection(current_key, current_label or current_key, current_items))
 
     return sections
 
@@ -1197,6 +1566,25 @@ def _match_backlog_section(line: str) -> tuple[str, str] | None:
         if pattern.match(line):
             return section
     return None
+
+
+def _parse_board_item(line: str) -> BoardItem | None:
+    stripped = line.strip()
+    if not stripped.startswith("- "):
+        return None
+    body = stripped[2:].strip()
+    match = re.match(r"^`?(T\d{2}|R\d{2})`?(?:\s*[:\-]\s*(.*))?$", body)
+    if not match:
+        return None
+    return BoardItem(identifier=match.group(1), note=(match.group(2) or "").strip())
+
+
+def order_board_sections(sections: list[BoardSection]) -> list[BoardSection]:
+    by_key = {section.key: section for section in sections}
+    ordered: list[BoardSection] = []
+    for key, label in BACKLOG_SECTION_ORDER:
+        ordered.append(by_key.get(key, BoardSection(key=key, label=label, items=[])))
+    return ordered
 
 
 def parse_current_task(content: str) -> CurrentTaskView:
@@ -1223,21 +1611,233 @@ def parse_current_task(content: str) -> CurrentTaskView:
     )
 
 
-def render_backlog_tasks(tasks: list[BacklogTask]) -> str:
+def parse_status_key_values(content: str) -> list[tuple[str, str]]:
+    parsed: list[tuple[str, str]] = []
+    for raw_line in content.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        match = re.match(r"^([^:]+):\s*(.+)$", line)
+        if not match:
+            continue
+        key = match.group(1).strip().strip("`")
+        value = match.group(2).strip().strip("`")
+        if key and value:
+            parsed.append((key, value))
+    return parsed
+
+
+def split_task_title(title: str) -> tuple[str, str]:
+    cleaned = title.strip()
+    match = re.match(r"^`?(T\d{2}|R\d{2})`?\s*[:\-]?\s*(.*)$", cleaned)
+    if match:
+        identifier = match.group(1).strip()
+        summary = match.group(2).strip() or identifier
+        return identifier, summary
+    return "", cleaned
+
+
+def extract_refinement_id(detail_lines: list[str]) -> str:
+    for line in detail_lines:
+        cleaned = line.strip()
+        if cleaned.startswith("- "):
+            cleaned = cleaned[2:].strip()
+        match = re.match(
+            r"^(Refinement|Refinamiento)\s*:\s*`?(R\d{2})`?\s*$",
+            cleaned,
+            re.IGNORECASE,
+        )
+        if match:
+            return match.group(2).upper()
+    return ""
+
+
+def build_refinement_index(tasks: dict[str, BacklogTask]) -> dict[str, list[str]]:
+    refinement_index: dict[str, list[str]] = {}
+    for identifier, task in tasks.items():
+        if not task.refinement_id:
+            continue
+        refinement_index.setdefault(task.refinement_id, []).append(identifier)
+    return refinement_index
+
+
+def read_task_catalog(workspace_name: str, iteraspec_root: Path) -> dict[str, BacklogTask]:
+    if not workspace_name or workspace_name == GLOBAL_WORKSPACE_NAME:
+        return {}
+    try:
+        loaded = read_workspace_document(workspace_name, "backlog.md", iteraspec_root)
+    except (InvalidDocumentRequestError, DocumentNotFoundError):
+        return {}
+    catalog = parse_task_catalog(loaded.content)
+    mapped: dict[str, BacklogTask] = {}
+    for task in catalog:
+        identifier, _ = split_task_title(task.title)
+        if identifier:
+            mapped[identifier] = task
+    return mapped
+
+
+def render_backlog_tasks(
+    tasks: list[BacklogTask],
+    section_key: str,
+    refinement_index: dict[str, list[str]],
+    tasks_by_id: dict[str, BacklogTask],
+) -> str:
     if not tasks:
         return "<div class=\"empty-task-card\">Sin tareas en esta columna.</div>"
-    return "".join(
-        (
+    rendered: list[str] = []
+    for index, task in enumerate(tasks, start=1):
+        modal_id = task_modal_id(task.identifier or f"{section_key}-{index}")
+        identifier, summary = split_task_title(task.title)
+        code_markup = (
+            f"<span class=\"task-code-chip\">{html.escape(identifier)}</span>"
+            if identifier
+            else ""
+        )
+        rendered.append(
             "<article class=\"task-card\">"
+            f"<a class=\"task-card-button\" href=\"#{modal_id}\">"
             "<div class=\"task-card-title-row\">"
             "<span class=\"task-state-dot\"></span>"
-            f"<h3>{html.escape(task.title)}</h3>"
+            "<div class=\"task-card-copy\">"
+            f"{code_markup}"
+            f"<div class=\"task-card-title\">{html.escape(summary)}</div>"
+            "<p>Ver detalle</p>"
             "</div>"
-            f"{render_task_bullets(task.bullets)}"
+            "</div>"
+            "</a>"
+            f"{render_task_modal(modal_id, task, None, refinement_index, tasks_by_id)}"
             "</article>"
         )
-        for task in tasks
+    return "".join(rendered)
+
+
+def render_board_items(
+    items: list[BoardItem],
+    section_key: str,
+    tasks_by_id: dict[str, BacklogTask],
+    refinement_index: dict[str, list[str]],
+) -> str:
+    if not items:
+        return "<div class=\"empty-task-card\">Sin tareas en esta columna.</div>"
+    rendered: list[str] = []
+    for index, item in enumerate(items, start=1):
+        modal_id = task_modal_id(item.identifier or f"{section_key}-{index}")
+        task = tasks_by_id.get(item.identifier)
+        summary = split_task_title(task.title)[1] if task else item.identifier
+        note_markup = f"<p>{html.escape(item.note)}</p>" if item.note else "<p>Ver detalle</p>"
+        rendered.append(
+            "<article class=\"task-card\">"
+            f"<a class=\"task-card-button\" href=\"#{modal_id}\">"
+            "<div class=\"task-card-title-row\">"
+            "<span class=\"task-state-dot\"></span>"
+            "<div class=\"task-card-copy\">"
+            f"<span class=\"task-code-chip\">{html.escape(item.identifier)}</span>"
+            f"<div class=\"task-card-title\">{html.escape(summary)}</div>"
+            f"{note_markup}"
+            "</div>"
+            "</div>"
+            "</a>"
+            f"{render_task_modal(modal_id, task, item, refinement_index, tasks_by_id)}"
+            "</article>"
+        )
+    return "".join(rendered)
+
+
+def render_task_modal(
+    modal_id: str,
+    task: BacklogTask | None,
+    board_item: BoardItem | None = None,
+    refinement_index: dict[str, list[str]] | None = None,
+    tasks_by_id: dict[str, BacklogTask] | None = None,
+) -> str:
+    if task is not None:
+        identifier, summary = split_task_title(task.title)
+        detail_markup = render_task_detail(task)
+    else:
+        identifier = board_item.identifier if board_item is not None else ""
+        summary = board_item.identifier if board_item is not None else "Tarea"
+        detail_markup = "<p>No se encontró detalle en <code>backlog.md</code> para esta tarea.</p>"
+    refinement_panel = render_refinement_panel(
+        identifier,
+        task.refinement_id if task is not None else "",
+        refinement_index or {},
+        tasks_by_id or {},
     )
+    note_panel = ""
+    if board_item is not None and board_item.note:
+        note_panel = (
+            "<article class=\"task-modal-panel\">"
+            "<h4>Nota de estado</h4>"
+            f"<p>{html.escape(board_item.note)}</p>"
+            "</article>"
+        )
+    return (
+        f"<section id=\"{modal_id}\" class=\"task-modal\">"
+        "<div class=\"task-modal-dialog\">"
+        "<header class=\"task-modal-header\">"
+        "<div>"
+        "<p class=\"section-kicker\">Detalle de tarea</p>"
+        f"{f'<span class=\"task-code-chip\">{html.escape(identifier)}</span>' if identifier else ''}"
+        f"<h3>{html.escape(summary)}</h3>"
+        "</div>"
+        "<a class=\"modal-close\" href=\"#\">Cerrar</a>"
+        "</header>"
+        "<div class=\"task-modal-body\">"
+        "<article class=\"task-modal-panel\">"
+        "<h4>Detalle</h4>"
+        f"{detail_markup}"
+        "</article>"
+        f"{refinement_panel}"
+        f"{note_panel}"
+        "</div>"
+        "</div>"
+        "</section>"
+    )
+
+
+def render_task_detail(task: BacklogTask) -> str:
+    if task.detail_lines:
+        return render_markdown("\n".join(task.detail_lines))
+    return "<p>Esta tarea no tiene detalle adicional en el backlog.</p>"
+
+
+def render_refinement_panel(
+    task_identifier: str,
+    refinement_id: str,
+    refinement_index: dict[str, list[str]],
+    tasks_by_id: dict[str, BacklogTask],
+) -> str:
+    if not refinement_id:
+        return ""
+    sibling_ids = [identifier for identifier in refinement_index.get(refinement_id, []) if identifier != task_identifier]
+    related_links = "".join(
+        (
+            f"<li><a class=\"doc-link\" href=\"#{task_modal_id(identifier)}\">"
+            f"{html.escape(identifier)} - {html.escape(split_task_title(tasks_by_id[identifier].title)[1])}"
+            "</a></li>"
+        )
+        for identifier in sibling_ids
+        if identifier in tasks_by_id
+    )
+    related_markup = (
+        f"<ul>{related_links}</ul>"
+        if related_links
+        else "<p>No hay otras tareas asociadas a este refinamiento.</p>"
+    )
+    return (
+        "<article class=\"task-modal-panel\">"
+        "<h4>Refinamiento</h4>"
+        f"<p><span class=\"task-code-chip\">{html.escape(refinement_id)}</span></p>"
+        "<h4>Tareas relacionadas</h4>"
+        f"{related_markup}"
+        "</article>"
+    )
+
+
+def task_modal_id(identifier: str) -> str:
+    normalized = re.sub(r"[^a-zA-Z0-9_-]+", "-", identifier.strip()) or "task"
+    return f"task-detail-{normalized}"
 
 
 def render_task_bullets(bullets: list[str]) -> str:
@@ -1329,7 +1929,7 @@ def _render_workspaces(workspaces: list[IteraSpecWorkspace]) -> str:
     return "".join(
         (
             "<article class=\"workspace-card\">"
-            f"<header><h2>{html.escape(workspace.name)}</h2><p>{html.escape(workspace.relative_path)}</p></header>"
+            f"<header><h2>{html.escape(_workspace_label(workspace.name))}</h2><p>{html.escape(workspace.relative_path)}</p></header>"
             f"<ul>{_render_documents(workspace.name, workspace.documents)}</ul>"
             "</article>"
         )
@@ -1355,10 +1955,12 @@ def _render_documents(workspace_name: str, documents: list[IteraSpecDocument]) -
 def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path) -> str:
     workspace_count = len(workspaces)
     document_count = sum(len(workspace.documents) for workspace in workspaces)
-    active_workspace = workspaces[0] if workspaces else None
+    global_workspace = next((workspace for workspace in workspaces if workspace.name == GLOBAL_WORKSPACE_NAME), None)
+    active_workspace = next((workspace for workspace in workspaces if workspace.name != GLOBAL_WORKSPACE_NAME), None)
     active_name = active_workspace.name if active_workspace else "Sin workspace"
+    active_label = _workspace_label(active_name)
 
-    backlog_stats = _read_backlog_stats(active_name, iteraspec_root) if active_workspace else {}
+    backlog_stats = _read_board_stats(active_name, iteraspec_root) if active_workspace else {}
     current_task = _read_current_task_snapshot(active_name, iteraspec_root) if active_workspace else None
 
     max_backlog_value = max(backlog_stats.values(), default=0)
@@ -1368,7 +1970,14 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
     )
 
     quick_links = _render_quick_links(active_workspace)
-    escaped_active_name = html.escape(active_name)
+    if global_workspace is not None:
+        quick_links = (
+            f"<a class=\"quick-link\" href=\"/workspaces/{GLOBAL_WORKSPACE_NAME}/documents/status.md\">status.md</a>"
+            + quick_links
+        )
+    board_doc_name = _preferred_board_document(active_workspace)
+    board_doc_label = "board" if board_doc_name == "board.md" else "backlog"
+    escaped_active_name = html.escape(active_label)
     current_task_markup = (
         "<article class=\"dashboard-focus-card\">"
         "<p class=\"section-kicker\">Tarea Activa</p>"
@@ -1416,7 +2025,7 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
           <p class="section-kicker">Estado del Backlog</p>
           <h2>Lectura ejecutiva</h2>
           <div class="mini-status-grid">{backlog_summary}</div>
-          <a class="primary-link" href="/workspaces/{active_name}/documents/backlog.md">Abrir backlog</a>
+          <a class="primary-link" href="/workspaces/{active_name}/documents/{board_doc_name}">Abrir {board_doc_label}</a>
         </article>
         {current_task_markup}
       </section>
@@ -1441,7 +2050,7 @@ def _render_backlog_bar(key: str, label: str, value: int, max_value: int) -> str
 def _render_quick_links(workspace: IteraSpecWorkspace | None) -> str:
     if workspace is None:
         return "<p class=\"muted\">No hay documentos detectados.</p>"
-    priority = ["specs.md", "backlog.md", "current_task.md"]
+    priority = ["specs.md", "board.md", "backlog.md", "current_task.md"]
     available = {document.name: document for document in workspace.documents}
     links = []
     for name in priority:
@@ -1452,13 +2061,29 @@ def _render_quick_links(workspace: IteraSpecWorkspace | None) -> str:
     return "".join(links) if links else "<p class=\"muted\">Sin accesos prioritarios detectados.</p>"
 
 
-def _read_backlog_stats(workspace_name: str, iteraspec_root: Path) -> dict[str, int]:
+def _preferred_board_document(workspace: IteraSpecWorkspace | None) -> str:
+    if workspace is None:
+        return "board.md"
+    available = {document.name for document in workspace.documents}
+    return "board.md" if "board.md" in available else "backlog.md"
+
+
+def _read_board_stats(workspace_name: str, iteraspec_root: Path) -> dict[str, int]:
+    try:
+        loaded = read_workspace_document(workspace_name, "board.md", iteraspec_root)
+    except (InvalidDocumentRequestError, DocumentNotFoundError):
+        return _read_legacy_backlog_stats(workspace_name, iteraspec_root)
+    parsed = parse_board(loaded.content)
+    return {section.label: len(section.items) for section in parsed}
+
+
+def _read_legacy_backlog_stats(workspace_name: str, iteraspec_root: Path) -> dict[str, int]:
     try:
         loaded = read_workspace_document(workspace_name, "backlog.md", iteraspec_root)
     except (InvalidDocumentRequestError, DocumentNotFoundError):
         return {}
-    parsed = parse_backlog(loaded.content)
-    return {section.label: len(section.tasks) for section in parsed}
+    parsed = parse_legacy_backlog_board(loaded.content)
+    return {section.label: len(section.items) for section in parsed}
 
 
 def _read_current_task_snapshot(workspace_name: str, iteraspec_root: Path) -> dict[str, str] | None:
@@ -1479,9 +2104,18 @@ def _render_document_page(
     current_workspace_name: str,
     current_document_name: str,
     content: str,
+    iteraspec_root: Path,
 ) -> str:
     navigation = _render_sidebar(workspaces, current_workspace_name, current_document_name)
-    article = render_specialized_document(current_document_name, content) or render_markdown(content)
+    article = (
+        render_specialized_document(
+            current_document_name,
+            content,
+            current_workspace_name,
+            iteraspec_root,
+        )
+        or render_markdown(content)
+    )
     return f"""<!doctype html>
 <html lang="es">
   <head>
@@ -1492,16 +2126,20 @@ def _render_document_page(
   </head>
   <body>
     <main class="reader-shell">
+      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
       <aside class="sidebar">
         <a class="home-link" href="/">IteraSpec GUI Viewer</a>
         <p class="sidebar-kicker">Documentos</p>
         {navigation}
       </aside>
       <section class="document-panel">
+        <div class="document-toolbar">
+          <label class="sidebar-toggle" for="sidebar-toggle"></label>
+        </div>
         <header class="document-header">
           <p class="eyebrow">Desarrollado con IteraSpec</p>
           <h1>{html.escape(current_document_name)}</h1>
-          <p class="lede">Workspace activo: <code>{html.escape(current_workspace_name)}</code></p>
+          <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(current_workspace_name))}</code></p>
         </header>
         <article class="markdown-body">
           {article}
@@ -1529,11 +2167,15 @@ def _render_sidebar(
             )
         sections.append(
             "<section class=\"sidebar-workspace\">"
-            f"<h2>{html.escape(workspace.name)}</h2>"
+            f"<h2>{html.escape(_workspace_label(workspace.name))}</h2>"
             f"<ul>{''.join(items) if items else '<li class=\"muted\">Sin documentos.</li>'}</ul>"
             "</section>"
         )
     return "".join(sections)
+
+
+def _workspace_label(name: str) -> str:
+    return "Global" if name == GLOBAL_WORKSPACE_NAME else name
 
 
 if __name__ == "__main__":

@@ -18,7 +18,13 @@ Follow `ITERASPEC.md` strictly as the main protocol for this project. Read it co
 
 Then let it start from `Phase 0` and approve each phase and task explicitly.
 
-Each feature or functionality handled with IteraSpec should keep its own workflow artifacts inside `.iteraspec/<feature_name>/`, for example `.iteraspec/user-authentication/specs.md`, `.iteraspec/user-authentication/backlog.md`, and `.iteraspec/user-authentication/current_task.md`.
+When IteraSpec asks for approval, you can answer with `[A]prueba` or just `a`. If you do not approve, just say what you want changed.
+
+Each feature or functionality handled with IteraSpec should keep its own workflow artifacts inside `.iteraspec/<feature_name>/`, for example `.iteraspec/user-authentication/specs.md`, `.iteraspec/user-authentication/backlog.md`, `.iteraspec/user-authentication/board.md`, and `.iteraspec/user-authentication/current_task.md`.
+
+In the task catalog, each `TNN` task should explicitly reference one associated `RNN` refinement. A single refinement may group multiple tasks.
+
+IteraSpec should also maintain a global file at `.iteraspec/status.md`. On a new session, the AI should inspect that file first to understand which feature, phase, and next step are currently active.
 
 ## Reuse In Another Project
 
@@ -38,9 +44,11 @@ Expected structure in the target project:
 your-project/
   ITERASPEC.md
   .iteraspec/
+    status.md
     <feature_name>/
       specs.md
       backlog.md
+      board.md
       current_task.md
   gui/
     app.py
