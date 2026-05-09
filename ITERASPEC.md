@@ -105,6 +105,87 @@ IteraSpec must use a fixed minimal identifier convention for phases, tasks, and 
 ## Active Task File Rule
 During implementation, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/current_task.md` containing the single backlog task currently being worked on for that feature. This file exists to avoid repeated full backlog reads and to make the active implementation scope explicit at all times.
 
+## Artifact Format Rule
+IteraSpec must use stable Markdown structures for the workflow artifacts that the GUI reads. Semantic intent alone is not enough. If the structure varies arbitrarily, the GUI may not be able to render the artifact.
+
+- **Canonical Format Rule:** The AI must treat the formats below as the canonical output for `status.md`, `backlog.md`, `board.md`, and `current_task.md`.
+- **GUI Compatibility Rule:** If the AI chooses another representation, it must preserve equivalent parseable markers for the GUI. Freeform tables or prose must not replace the canonical format unless the GUI explicitly supports them.
+- **Heading Stability Rule:** The AI must not rename the required headings in a way that removes their meaning or parseability.
+
+Canonical `backlog.md` format:
+
+```md
+# Task Catalog
+
+### T01 - Short task title
+- Refinement: R01
+- Description: Detailed task description.
+- Acceptance Criteria: Observable completion condition.
+- Dependencies: None
+
+### T02 - Next task title
+- Refinement: R01
+- Description: Detailed task description.
+- Acceptance Criteria: Observable completion condition.
+- Dependencies: T01
+```
+
+Canonical `board.md` format:
+
+```md
+# Backlog Board
+
+## 🔴 To Do
+- T01
+- T02
+
+## 🟡 In Progress
+- T03
+
+## 🟢 Done
+- T00
+
+## ⚫ Blocked
+- T04: Waiting for external credential
+```
+
+Canonical `current_task.md` format:
+
+```md
+# Implement user authentication endpoint
+
+## Identificador
+- T03
+
+## Refinamiento
+- R01
+
+## Objetivo
+Implement the approved backlog scope for this task only.
+
+## Criterios de aceptación
+- The endpoint rejects invalid credentials.
+- The endpoint returns a session token on success.
+
+## Notas de implementación
+- Reuse the existing auth service.
+- Do not modify unrelated flows.
+```
+
+Canonical `.iteraspec/status.md` format:
+
+```md
+# IteraSpec Status
+
+- Active Feature: user-authentication
+- Current Phase: P3
+- Phase State: In Progress
+- Last Approved Phase: P2
+- Active Task: T03
+- Active Refinement: R01
+- Next Expected Action: Implement current task and report readiness
+```
+
 ## Backlog Separation Rule
 IteraSpec must separate task definitions from task state tracking during planning and implementation.
 
@@ -175,6 +256,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
     *   `🟡 In Progress`: The single task identifier currently being implemented. Only one task may exist in this state at any time.
     *   `🟢 Done`: Task identifiers completed through relevant testing or explicit user approval.
     *   `⚫ Blocked`: Task identifiers that cannot continue due to a failure, dependency, missing decision, environment issue, or external constraint. Each blocked task entry must include a short description of the blocker.
+*   **Canonical Syntax Rule:** In this phase, the AI must emit `backlog.md` and `board.md` using the canonical Markdown structures defined in `Artifact Format Rule`.
 *   **Approval Gate:** The backlog catalog and board are considered finalized only after human approval.
 *   **Goal:** Create a clear roadmap that guides development incrementally, ensuring traceability and manageability.
 

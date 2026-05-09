@@ -24,6 +24,8 @@ Each feature or functionality handled with IteraSpec should keep its own workflo
 
 In the task catalog, each `TNN` task should explicitly reference one associated `RNN` refinement. A single refinement may group multiple tasks.
 
+The GUI expects stable Markdown structures for `status.md`, `backlog.md`, `board.md`, and `current_task.md`. Use the canonical artifact formats documented in [`ITERASPEC.md`](/home/prezdev/git-projects/itera-spec/ITERASPEC.md).
+
 IteraSpec should also maintain a global file at `.iteraspec/status.md`. On a new session, the AI should inspect that file first to understand which feature, phase, and next step are currently active.
 
 ## Reuse In Another Project

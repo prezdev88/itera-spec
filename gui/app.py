@@ -1465,6 +1465,7 @@ def render_current_task_view(content: str) -> str:
 def parse_task_catalog(content: str) -> list[BacklogTask]:
     tasks: list[BacklogTask] = []
     current_task: BacklogTask | None = None
+    global_refinement_id = extract_global_refinement_id(content)
 
     for raw_line in content.splitlines():
         line = raw_line.rstrip()
@@ -1498,7 +1499,49 @@ def parse_task_catalog(content: str) -> list[BacklogTask]:
 
     for task in tasks:
         task.refinement_id = extract_refinement_id(task.detail_lines)
+        if not task.refinement_id and global_refinement_id:
+            task.refinement_id = global_refinement_id
 
+    if tasks:
+        return tasks
+
+    return parse_task_catalog_table(content, global_refinement_id)
+
+
+def parse_task_catalog_table(content: str, global_refinement_id: str) -> list[BacklogTask]:
+    tasks: list[BacklogTask] = []
+    for raw_line in content.splitlines():
+        line = raw_line.strip()
+        if not line.startswith("|") or line.count("|") < 6:
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        if cells[0].lower() == "id" or set("".join(cells)) <= {":", "-", " "}:
+            continue
+        identifier = normalize_task_identifier(cells[0])
+        if not identifier:
+            continue
+        title = cells[1] or identifier
+        detail_lines = []
+        refinement_id = global_refinement_id
+        if refinement_id:
+            detail_lines.append(f"- Refinement: {refinement_id}")
+        if cells[2]:
+            detail_lines.append(f"- Description: {cells[2]}")
+        if cells[3]:
+            detail_lines.append(f"- Acceptance Criteria: {cells[3]}")
+        if len(cells) > 4 and cells[4]:
+            detail_lines.append(f"- Dependencies: {cells[4]}")
+        tasks.append(
+            BacklogTask(
+                identifier=identifier,
+                title=f"{identifier} - {title}",
+                refinement_id=refinement_id,
+                bullets=[line[2:].strip() for line in detail_lines if line.startswith("- ")],
+                detail_lines=detail_lines,
+            )
+        )
     return tasks
 
 
@@ -1650,6 +1693,21 @@ def extract_refinement_id(detail_lines: list[str]) -> str:
         if match:
             return match.group(2).upper()
     return ""
+
+
+def extract_global_refinement_id(content: str) -> str:
+    normalized = content.replace("*", "")
+    match = re.search(
+        r"(?:Refinement Group|Grupo de refinamiento|Refinamiento)\s*:?\s*`?(R\d{2})`?",
+        normalized,
+        re.IGNORECASE,
+    )
+    return match.group(1).upper() if match else ""
+
+
+def normalize_task_identifier(value: str) -> str:
+    match = re.search(r"\b(T\d{2})\b", value.strip(), re.IGNORECASE)
+    return match.group(1).upper() if match else ""
 
 
 def build_refinement_index(tasks: dict[str, BacklogTask]) -> dict[str, list[str]]:
