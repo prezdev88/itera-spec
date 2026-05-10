@@ -24,7 +24,7 @@ This prohibition includes project scaffolding, repository bootstrapping, framewo
 IteraSpec is a development protocol and must remain isolated from the product, feature, or application being built.
 
 - The AI must not expose, mention, render, or embed IteraSpec concepts inside the developed product unless the human explicitly requests that behavior.
-- This includes references to IteraSpec itself, protocol phases, backlog states, task identifiers, refinement identifiers, approval mechanics, `.iteraspec/`, `status.md`, or any other workflow artifact.
+- This includes references to IteraSpec itself, protocol phases, backlog states, task identifiers, approval mechanics, `.iteraspec/`, `status.md`, or any other workflow artifact.
 - User-facing screens, labels, placeholder text, demos, seeded content, examples, logs intended for end users, and generated documentation for the product must describe the product domain itself, not the internal IteraSpec workflow.
 - Internal IteraSpec artifacts may mention IteraSpec freely, but production-facing output must remain cleanly separated from the protocol.
 
@@ -41,15 +41,15 @@ The AI must implement only one task at a time. It must not code multiple backlog
 ## Automatic Task Advance Rule
 Once a human explicitly confirms that the current `🟡 In Progress` task is closed as `🟢 Done`, the AI must automatically select the next highest-priority task from `🔴 To Do`, move it to `🟡 In Progress`, update `.iteraspec/<feature_name>/current_task.md`, and begin the next implementation cycle without waiting for a separate approval to start that next task.
 The AI must not auto-start the next task only if the human explicitly says they do not want to continue yet, do not want to start the next task, or want to pause after the current closure.
-This automatic advance applies only inside Phase 3 after the human has explicitly approved entry into Phase 3 for the first task. It does not override the requirement for that first explicit approval.
+This automatic advance applies inside Phase 3, including the first task immediately after Phase 2 approval unless the human explicitly pauses or requests backlog changes first.
 
 ## Phase 3 Entry Rule
-Entering Phase 3 requires exactly one explicit human approval decision for the first implementation step.
+Entering Phase 3 does not require a separate approval after Phase 2 approval unless the human explicitly pauses the workflow or asks for planning changes before implementation starts.
 
-- **Single Approval Rule:** After Phase 2 is approved, the AI must ask only once for permission to begin implementation.
-- **Equivalent Approval Phrasing Rule:** Approval to "start Phase 3", approval to "begin implementation", or approval to "start the first task" are equivalent and must be treated as the same authorization event.
-- **No Double Confirmation Rule:** Once the human gives that approval, the AI must not ask a second redundant confirmation before creating `current_task.md`, moving the first task to `🟡 In Progress`, or starting implementation.
-- **Scope Rule:** This single approval covers entry into Phase 3 and the start of the first selected task only. Later tasks follow the Automatic Task Advance Rule unless the human pauses the workflow.
+- **Phase 2 Approval Carries Forward Rule:** Human approval of Phase 2 planning artifacts authorizes the AI to enter Phase 3 immediately and start the first selected task.
+- **No Extra Entry Confirmation Rule:** After Phase 2 is approved, the AI must not ask a separate question such as whether it may enter Phase 3, begin implementation, or start the first task.
+- **Pause Exception Rule:** The AI must not start implementation automatically only if the human explicitly says to pause, wait, or revise the planning artifacts before coding begins.
+- **Scope Rule:** Approval of Phase 2 covers entry into Phase 3 and the start of the first selected task only. Later tasks follow the Automatic Task Advance Rule unless the human pauses the workflow.
 
 ## Feature Workspace Rule
 Each full IteraSpec cycle for a new feature, functionality, or change request must use its own dedicated workspace inside `.iteraspec/`, using the structure `.iteraspec/<feature_name>/`.
@@ -83,7 +83,7 @@ IteraSpec must maintain a global status file at `.iteraspec/status.md` to make t
 - **Multi-Feature Rule:** The file must identify the active feature and summarize the state of any other feature workspaces that are in progress, paused, blocked, or awaiting approval.
 - **Update Rule:** The AI must update `.iteraspec/status.md` whenever a phase starts, a phase is approved, a task starts, a task is approved as done, a task becomes blocked, the workflow is paused, or the active feature changes.
 - **Consistency Rule:** The information in `.iteraspec/status.md` must remain consistent with `.iteraspec/<feature_name>/specs.md`, `.iteraspec/<feature_name>/backlog.md`, `.iteraspec/<feature_name>/board.md`, and `.iteraspec/<feature_name>/current_task.md`.
-- **Minimum Contents Rule:** The file must include at least the active feature, current phase, phase state, last approved phase, active task if any, active refinement if any, and the next expected action.
+- **Minimum Contents Rule:** The file must include at least the active feature, current phase, phase state, last approved phase, active task if any, active requirement if any, and the next expected action.
 
 ## Timestamp Traceability Rule
 IteraSpec must persist explicit date-and-time markers across all workflow artifacts so creation events, task transitions, and status updates are auditable.
@@ -109,16 +109,23 @@ IteraSpec must persist the required workflow artifacts on disk before claiming t
 Any Markdown file created by IteraSpec as part of the workflow must be stored inside the feature workspace for that cycle, inside `.iteraspec/<feature_name>/`. This includes specification files, backlog files, review notes, status reports, and any other Markdown artifacts generated by the protocol.
 
 ## Identifier Convention Rule
-IteraSpec must use a fixed minimal identifier convention for phases, tasks, and refinements in every feature workspace.
+IteraSpec must use a fixed minimal identifier convention for phases, requirements, and tasks in every feature workspace.
 
 - **Phases:** The protocol phases must be referenced as `P0`, `P1`, `P2`, `P3`, and `P4`.
+- **Functional Requirements:** Functional requirements in `specs.md` must use the format `RFNN`, starting at `RF01` and increasing sequentially.
+- **Non-Functional Requirements:** Non-functional requirements in `specs.md` must use the format `RNFNN`, starting at `RNF01` and increasing sequentially.
 - **Tasks:** Backlog tasks must use the format `TNN`, starting at `T01` and increasing sequentially (`T02`, `T03`, etc.). Task identifiers must always use two digits to preserve visual ordering and consistency.
-- **Refinements:** Refinements must use the format `RNN`, starting at `R01` and increasing sequentially (`R02`, `R03`, etc.). Refinement identifiers must always use two digits.
-- **Task-to-Refinement Rule:** Every task `TNN` must be associated with exactly one refinement `RNN`.
-- **Refinement Grouping Rule:** A refinement `RNN` may group one or more tasks `TNN`.
-- **Per-Feature Scope:** Task and refinement numbering is sequential within each `.iteraspec/<feature_name>/` workspace.
-- **Uniqueness Rule:** Task and refinement identifiers must not be reused, even if an item is removed, blocked, or replaced later.
-- **Active Context Rule:** During implementation, `.iteraspec/<feature_name>/current_task.md` must include the active task identifier. If the current work is a refinement, the file must also include the active refinement identifier.
+- **Task-to-Requirement Rule:** Every task `TNN` must be associated with exactly one requirement identifier already defined in `specs.md`. That identifier may be `RFNN` or `RNFNN`.
+- **Per-Feature Scope:** Task numbering is sequential within each `.iteraspec/<feature_name>/` workspace.
+- **Uniqueness Rule:** Task identifiers must not be reused, even if an item is removed, blocked, or replaced later.
+
+## Requirement Traceability Rule
+IteraSpec must keep direct traceability between the approved specification and every planned task.
+
+- **Specification Source Rule:** The canonical definitions of `RFNN` and `RNFNN` live in `.iteraspec/<feature_name>/specs.md`.
+- **Backlog Derivation Rule:** `backlog.md` may reference only requirement identifiers already defined in the approved `specs.md`.
+- **No Invented Requirement Rule:** The AI must not introduce new requirement identifiers in `backlog.md`, `board.md`, `current_task.md`, or `status.md` unless `specs.md` has first been updated and approved with those requirement definitions.
+- **Coverage Rule:** Every implementation task must trace back to one approved requirement, and every approved requirement that is expected to drive implementation must be covered by at least one task unless `specs.md` explicitly says otherwise.
 
 ## Active Task File Rule
 During implementation, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/current_task.md` containing the single backlog task currently being worked on for that feature. This file exists to avoid repeated full backlog reads and to make the active implementation scope explicit at all times.
@@ -136,15 +143,15 @@ Canonical `backlog.md` format:
 # Task Catalog
 
 ### T01 - Short task title
-- Refinement: R01
 - Created At: 2026-05-10T14:32:11-03:00
+- Requirement: RF01
 - Description: Detailed task description.
 - Acceptance Criteria: Observable completion condition.
 - Dependencies: None
 
 ### T02 - Next task title
-- Refinement: R01
 - Created At: 2026-05-10T14:40:03-03:00
+- Requirement: RNF01
 - Description: Detailed task description.
 - Acceptance Criteria: Observable completion condition.
 - Dependencies: T01
@@ -177,8 +184,8 @@ Canonical `current_task.md` format:
 ## Identificador
 - T03
 
-## Refinamiento
-- R01
+## Requerimiento
+- RF01
 
 ## Trazabilidad temporal
 - Started At: 2026-05-10T15:05:44-03:00
@@ -206,7 +213,7 @@ Canonical `.iteraspec/status.md` format:
 - Phase State: In Progress
 - Last Approved Phase: P2
 - Active Task: T03
-- Active Refinement: R01
+- Active Requirement: RF01
 - Last Updated At: 2026-05-10T15:11:09-03:00
 - Next Expected Action: Implement current task and report readiness
 ```
@@ -216,11 +223,10 @@ IteraSpec must separate task definitions from task state tracking during plannin
 
 - **Backlog Catalog Rule:** `.iteraspec/<feature_name>/backlog.md` must contain the full catalog of task definitions. Each task must keep its identifier, title, and implementation-relevant detail in a stable place that is not deleted when the task changes status.
 - **Backlog Timestamp Rule:** Each task definition in `backlog.md` must preserve its original `Created At` value after creation. Later edits may add more traceability fields, but they must not overwrite the original creation timestamp.
-- **Refinement Association Rule:** Each task definition in `backlog.md` must explicitly declare its associated refinement identifier so the relationship between tasks and refinements remains traceable.
+- **Requirement Association Rule:** Each task definition in `backlog.md` must explicitly declare its associated requirement identifier so the relationship between tasks and approved requirements remains traceable.
 - **Board Rule:** `.iteraspec/<feature_name>/board.md` must contain the operational state board only.
 - **Board Content Rule:** `board.md` must track `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, and `⚫ Blocked` using task identifiers only, plus the timestamp of the latest entry into that state and a short blocker note when a task is blocked.
 - **Exclusive State Rule:** A task identifier may appear in one and only one board section at a time. The same task must never be present simultaneously in `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, or `⚫ Blocked`.
-- **Board Scope Rule:** Refinements are grouping identifiers and must not replace tasks as the primary items tracked in `board.md`.
 - **No Detail Loss Rule:** Moving a task between states must update `board.md` and must not remove or replace the task detail already stored in `backlog.md`.
 - **Move Means Remove Then Add Rule:** When a task changes state, the AI must remove it from its previous board section before adding it to the new one.
 - **Current Task Source Rule:** `current_task.md` may be copied or summarized from `backlog.md`, but the canonical long-lived task definition remains in `backlog.md`.
@@ -232,9 +238,8 @@ IteraSpec must minimize token usage across all phases without reducing correctne
 - **Reference Instead of Repeat Rule:** After a document has been created and approved, the AI should reference it by file path, identifier, section, task code, or short summary instead of reproducing its contents.
 - **Current Task First Rule:** During Phase 3, the AI must use `.iteraspec/<feature_name>/current_task.md` as the primary working context and must avoid rereading or reprinting the entire backlog unless reprioritization, re-planning, or blocker analysis requires it.
 - **Board First Rule:** When the AI only needs to know task order or state, it should read `board.md` before reading the full task catalog in `backlog.md`.
-- **Delta Reporting Rule:** Status updates, readiness reports, and refinement notes should describe only what changed since the previous approved or reported state, plus any information needed for validation or decision-making.
+- **Delta Reporting Rule:** Status updates and readiness reports should describe only what changed since the previous approved or reported state, plus any information needed for validation or decision-making.
 - **Concise Status Rule:** Routine progress updates should remain brief and focused. The AI should avoid long narrative recaps when a short operational summary is enough.
-- **Refinement Compression Rule:** Refinements should record only the adjustment made, the reason for it, and the impact on acceptance or validation. The AI must not rewrite the full task description unless the task scope itself changed.
 - **Phase Memory Rule:** Once a phase has been approved, the AI must treat that phase as closed reference context and must not reconstruct it in full unless the user requests a recap or a scope change reopens it.
 
 ## Change Request Rule
@@ -258,6 +263,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 ## Phase 1: Requirement Formalization & Specification Generation
 *   **Input:** Raw conversational data from Phase 0.
 *   **AI Action:** Create the feature workspace if it does not already exist, then generate and finalize a comprehensive **Specification Document (`.iteraspec/<feature_name>/specs.md`)**. This document must be highly detailed, covering functional requirements (what the system must do), non-functional requirements (performance, security, usability), and initial architectural decisions.
+*   **Requirement Identifier Rule:** During this phase, the AI must assign stable `RFNN` and `RNFNN` identifiers inside `specs.md` so later planning and implementation can trace tasks directly back to approved requirements.
 *   **Existing System Rule:** If the work targets an existing project, the AI must analyze the current system before finalizing the specification. This analysis must identify the current architecture, relevant modules, dependencies, integration points, constraints, and likely regression risks. The resulting specification must clearly distinguish existing behavior from the requested changes.
 *   **Technology Decision Rule:** During this phase, the AI must ask the user whether they want a specific technology stack, framework, language, or platform. If the user does not know, does not care, or does not want to answer, the AI must choose the most appropriate stack based on the project requirements and document that decision in `.iteraspec/<feature_name>/specs.md` with a brief justification.
 *   **Specification Size Rule:** The specification must be detailed enough to support implementation and approval, but it must avoid unnecessary narrative repetition, long prose restatements, and exhaustive discussion of discarded alternatives that do not affect implementation.
@@ -269,6 +275,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 ## Phase 2: Backlog Decomposition & Task Planning
 *   **Input:** The finalized `.iteraspec/<feature_name>/specs.md` from Phase 1.
 *   **AI Action:** Generate a structured task catalog and state board inside the same feature workspace: `.iteraspec/<feature_name>/backlog.md` for full task definitions and `.iteraspec/<feature_name>/board.md` for operational task state. This process breaks down the system into atomic, self-contained User Stories or Tasks (e.g., "Implement user authentication endpoint").
+*   **Requirement Reuse Rule:** During backlog generation, the AI must reuse the approved requirement identifiers from `specs.md` and must not rename, renumber, merge, or split them silently.
 *   **Restriction:** No code may be written in this phase.
 *   **Restriction:** No implementation artifact may be created in this phase. The AI must not scaffold the project, initialize a framework, create build files, create dependency manifests, create source code, create tests, or start executing any backlog task.
 *   **Sizing Rule:** The backlog must not target any fixed number of tasks. The number of tasks must emerge from the real scope and complexity of the approved feature.
@@ -292,7 +299,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 ## Phase 3: Iterative Development Loop (The Core Cycle)
 This phase repeats until the backlog is empty or marked complete by the user.
 1.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
-    The AI must wait for one explicit human approval before starting implementation of the first selected task in Phase 3. That single approval is also the approval to enter Phase 3. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
+    Once Phase 2 is approved, the AI must automatically start Phase 3 with the first selected task unless the human explicitly pauses or requests planning changes first. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
     Moving a task means removing it from `🔴 To Do` and then adding it to `🟡 In Progress`; it must not remain in both sections.
 2.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
 3.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
@@ -309,7 +316,7 @@ This phase repeats until the backlog is empty or marked complete by the user.
 11.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 3 unless the human explicitly pauses the workflow.
 
 ## Transition Rule Between Phase 2 and Phase 3
-Approval of `.iteraspec/<feature_name>/specs.md` or approval of the Phase 2 planning artifacts does not authorize implementation by itself. After Phase 2 is approved, the AI must remain in planning mode until a human explicitly authorizes implementation. Authorization to enter Phase 3, authorization to begin implementation, and approval to start the first backlog task are the same decision and must not be requested separately. After that first approval, Phase 3 may continue task by task under the Automatic Task Advance Rule.
+Approval of `.iteraspec/<feature_name>/specs.md` alone does not authorize implementation, but approval of the Phase 2 planning artifacts does. After Phase 2 is approved, the AI must enter Phase 3 automatically, move the first selected task to `🟡 In Progress`, create `current_task.md`, and begin implementation without requesting an extra authorization step. The AI must not do this only if the human explicitly pauses the workflow or requests backlog changes before coding starts. After that, Phase 3 may continue task by task under the Automatic Task Advance Rule.
 
 ## Phase 4: Finalization & Deployment Readiness
 *   **Action:** Once all tasks are complete (`🔴 To Do` is empty), the AI performs a final review of the entire codebase.

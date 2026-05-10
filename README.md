@@ -22,7 +22,7 @@ When IteraSpec asks for approval, you can answer with `[A]prueba` or just `a`. I
 
 Each feature or functionality handled with IteraSpec should keep its own workflow artifacts inside `.iteraspec/<feature_name>/`, for example `.iteraspec/user-authentication/specs.md`, `.iteraspec/user-authentication/backlog.md`, `.iteraspec/user-authentication/board.md`, and `.iteraspec/user-authentication/current_task.md`.
 
-In the task catalog, each `TNN` task should explicitly reference one associated `RNN` refinement. A single refinement may group multiple tasks.
+Each backlog task must be associated with exactly one approved requirement identifier from `specs.md`, using `RFNN` or `RNFNN`.
 
 The GUI expects stable Markdown structures for `status.md`, `backlog.md`, `board.md`, and `current_task.md`. Use the canonical artifact formats documented in [`ITERASPEC.md`](/home/prezdev/git-projects/itera-spec/ITERASPEC.md).
 

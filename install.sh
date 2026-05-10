@@ -10,7 +10,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_PROTOCOL_FILE="${SCRIPT_DIR}/ITERASPEC.md"
 SOURCE_GUI_DIR="${SCRIPT_DIR}/gui"
-TARGET_ROOT="$(realpath "$1")"
+TARGET_ROOT="$(realpath -m "$1")"
 TARGET_GUI_DIR="${TARGET_ROOT}/.gui"
 
 if [ ! -f "${SOURCE_PROTOCOL_FILE}" ]; then
@@ -25,6 +25,7 @@ for file in app.py run.sh requirements.txt; do
   fi
 done
 
+mkdir -p "${TARGET_ROOT}"
 mkdir -p "${TARGET_GUI_DIR}"
 
 cp "${SOURCE_PROTOCOL_FILE}" "${TARGET_ROOT}/ITERASPEC.md"
@@ -35,3 +36,5 @@ cp "${SOURCE_GUI_DIR}/requirements.txt" "${TARGET_GUI_DIR}/requirements.txt"
 printf 'IteraSpec instalado en:\n'
 printf '  %s\n' "${TARGET_ROOT}/ITERASPEC.md"
 printf '  %s\n' "${TARGET_GUI_DIR}"
+printf '\nUsa esta instrucción con tu asistente:\n'
+printf '  Sigue estrictamente `ITERASPEC.md` como protocolo principal de este proyecto. Léelo completo antes de actuar y obedécelo literalmente.\n'

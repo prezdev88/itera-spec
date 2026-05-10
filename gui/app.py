@@ -1129,6 +1129,17 @@ h1 {
   background: rgba(15, 118, 110, 0.12);
   color: var(--accent-strong);
   font-weight: 700;
+  text-decoration: none;
+}
+
+.task-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.task-pill-group .task-pill {
+  margin: 8px 0 16px;
 }
 
 .focus-objective {
@@ -1238,6 +1249,7 @@ THEME_BEHAVIOR_SCRIPT = """<script>
 </script>"""
 
 KNOWN_DOCUMENTS = ("status.md", "specs.md", "backlog.md", "board.md", "current_task.md")
+WORKSPACE_DOCUMENT_ORDER = ("specs.md", "backlog.md", "board.md", "current_task.md")
 GLOBAL_WORKSPACE_NAME = "_global"
 BACKLOG_SECTION_PATTERNS = (
     (re.compile(r"^##\s+`?🔴\s+To Do`?\s*$"), ("todo", "To Do")),
@@ -1281,7 +1293,7 @@ class IteraSpecDocumentContent:
 class BacklogTask:
     identifier: str
     title: str
-    refinement_id: str
+    requirement_id: str
     bullets: list[str]
     detail_lines: list[str]
 
@@ -1310,7 +1322,7 @@ class BoardSection:
 class CurrentTaskView:
     title: str
     identifier: str
-    refinement: str
+    requirement: str
     objective: str
     acceptance: list[str]
     notes: list[str]
@@ -1459,23 +1471,21 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail=f"No se encontró la tarea {identifier}.")
 
         board_item, board_label = find_board_item(identifier, workspace_name, iteraspec_root)
-        refinement_index = build_refinement_index(tasks_by_id)
         return _render_task_page(
             workspaces,
             workspace_name,
             task,
             board_item,
             board_label,
-            refinement_index,
             tasks_by_id,
         )
 
-    @app.get("/workspaces/{workspace_name}/refinements/{refinement_id}", response_class=HTMLResponse)
-    async def workspace_refinement_page(workspace_name: str, refinement_id: str) -> str:
+    @app.get("/workspaces/{workspace_name}/requirements/{requirement_identifier}", response_class=HTMLResponse)
+    async def workspace_requirement_page(workspace_name: str, requirement_identifier: str) -> str:
         workspaces = discover_workspaces(iteraspec_root)
-        normalized = normalize_refinement_identifier(refinement_id)
+        normalized = normalize_requirement_identifier(requirement_identifier)
         if not normalized:
-            raise HTTPException(status_code=404, detail=f"Refinamiento no válido: {refinement_id}.")
+            raise HTTPException(status_code=404, detail=f"Requerimiento no válido: {requirement_identifier}.")
 
         try:
             loaded = read_workspace_document(workspace_name, "specs.md", iteraspec_root)
@@ -1484,13 +1494,13 @@ def create_app() -> FastAPI:
         except DocumentNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-        section_title, section_content = extract_refinement_spec_section(loaded.content, normalized)
+        section_title, section_content = extract_requirement_spec_section(loaded.content, normalized)
         if not section_content:
             raise HTTPException(status_code=404, detail=f"No se encontró contexto para {normalized} en specs.md.")
 
         tasks_by_id = read_task_catalog(workspace_name, iteraspec_root)
-        related_tasks = [task for task in tasks_by_id.values() if task.refinement_id == normalized]
-        return _render_refinement_page(
+        related_tasks = [task for task in tasks_by_id.values() if task.requirement_id == normalized]
+        return _render_requirement_page(
             workspaces,
             workspace_name,
             normalized,
@@ -1556,7 +1566,11 @@ def _discover_global_workspace(root_dir: Path) -> IteraSpecWorkspace | None:
 
 def _discover_workspace_documents(workspace_dir: Path, root_dir: Path) -> list[IteraSpecDocument]:
     documents: list[IteraSpecDocument] = []
-    for markdown_file in sorted(workspace_dir.glob("*.md"), key=lambda path: path.name):
+    order_index = {name: index for index, name in enumerate(WORKSPACE_DOCUMENT_ORDER)}
+    for markdown_file in sorted(
+        workspace_dir.glob("*.md"),
+        key=lambda path: (order_index.get(path.name, len(WORKSPACE_DOCUMENT_ORDER)), path.name),
+    ):
         documents.append(
             IteraSpecDocument(
                 name=markdown_file.name,
@@ -1729,7 +1743,7 @@ def _render_inline(text: str, workspace_name: str = "") -> str:
     escaped = html.escape(protected)
     escaped = _replace_markdown_links(escaped)
     escaped = _replace_emphasis(escaped)
-    escaped = _replace_refinement_mentions(escaped, workspace_name)
+    escaped = _replace_requirement_mentions(escaped, workspace_name)
     return _restore_inline_tokens(escaped, tokens)
 
 
@@ -1862,14 +1876,14 @@ def _replace_emphasis(text: str) -> str:
     return rendered
 
 
-def _replace_refinement_mentions(text: str, workspace_name: str) -> str:
+def _replace_requirement_mentions(text: str, workspace_name: str) -> str:
     if not workspace_name or workspace_name == GLOBAL_WORKSPACE_NAME:
         return text
 
     def replace_segment(segment: str) -> str:
         return re.sub(
-            r"\b(R\d{2})\b",
-            lambda match: f'<a href="{refinement_detail_href(workspace_name, match.group(1))}">{match.group(1)}</a>',
+            r"\b((?:RF|RNF)\d{2})\b",
+            lambda match: f'<a href="{requirement_detail_href(workspace_name, match.group(1))}">{match.group(1)}</a>',
             segment,
         )
 
@@ -1914,7 +1928,7 @@ def render_status_view(content: str) -> str:
     phase_state = status_map.get("Phase State", "Unknown")
     last_approved_phase = status_map.get("Last Approved Phase", "(none)")
     active_task = status_map.get("Active Task", "(none)")
-    active_refinement = status_map.get("Active Refinement", "(none)")
+    active_requirement = status_map.get("Active Requirement", "(none)")
     next_expected_action = status_map.get("Next Expected Action", "Sin proximo paso detectado.")
 
     topline_cards = "".join(
@@ -1928,7 +1942,7 @@ def render_status_view(content: str) -> str:
             ("Active Feature", active_feature),
             ("Last Approved Phase", last_approved_phase),
             ("Active Task", active_task),
-            ("Active Refinement", active_refinement),
+            ("Active Requirement", active_requirement),
         ]
     )
     extra_pairs = [
@@ -1941,7 +1955,7 @@ def render_status_view(content: str) -> str:
             "Phase State",
             "Last Approved Phase",
             "Active Task",
-            "Active Refinement",
+            "Active Requirement",
             "Next Expected Action",
         }
     ]
@@ -1980,8 +1994,6 @@ def render_status_view(content: str) -> str:
 
 def render_backlog_view(content: str, workspace_name: str) -> str:
     tasks = parse_task_catalog(content)
-    tasks_by_id = {task.identifier: task for task in tasks if task.identifier}
-    refinement_index = build_refinement_index(tasks_by_id)
     summary = (
         "<article class=\"status-summary-card\">"
         "<span>Catalogo</span>"
@@ -1992,7 +2004,7 @@ def render_backlog_view(content: str, workspace_name: str) -> str:
     board = (
         "<section class=\"backlog-column\">"
         "<header><span class=\"status-chip done\">Task Catalog</span></header>"
-        f"{render_backlog_tasks(tasks, 'catalog', workspace_name, refinement_index, tasks_by_id)}"
+        f"{render_backlog_tasks(tasks, 'catalog', workspace_name)}"
         "</section>"
     )
     return (
@@ -2010,7 +2022,6 @@ def render_backlog_view(content: str, workspace_name: str) -> str:
 def render_board_view(content: str, workspace_name: str, iteraspec_root: Path) -> str:
     sections = parse_board(content)
     tasks_by_id = read_task_catalog(workspace_name, iteraspec_root)
-    refinement_index = build_refinement_index(tasks_by_id)
     if not sections:
         legacy = parse_legacy_backlog_board(content)
         if legacy:
@@ -2030,7 +2041,7 @@ def render_board_view(content: str, workspace_name: str, iteraspec_root: Path) -
         (
             "<section class=\"backlog-column\">"
             f"<header><span class=\"status-chip {section.key}\">{section.label}</span></header>"
-            f"{render_board_items(section.items, section.key, workspace_name, tasks_by_id, refinement_index)}"
+            f"{render_board_items(section.items, section.key, workspace_name, tasks_by_id)}"
             "</section>"
         )
         for section in sections
@@ -2054,19 +2065,27 @@ def render_current_task_view(content: str, workspace_name: str) -> str:
     timeline = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.timeline) or "<li>Sin marcas temporales detectadas.</li>"
     objective = _render_inline(task.objective or "Objetivo no detectado.", workspace_name)
     identifier = html.escape(task.identifier or "Sin identificador")
+    requirement = html.escape(task.requirement or "Sin requerimiento")
     title = html.escape(task.title or "Tarea activa")
-    refinement = (
-        f'<div class="task-pill"><a class="doc-link" href="{refinement_detail_href(workspace_name, task.refinement)}">{html.escape(task.refinement)}</a></div>'
-        if task.refinement and workspace_name and workspace_name != GLOBAL_WORKSPACE_NAME
-        else (f'<div class="task-pill">{html.escape(task.refinement)}</div>' if task.refinement else "")
+    identifier_markup = (
+        f'<a class="task-pill" href="{task_detail_href(workspace_name, task.identifier)}">{identifier}</a>'
+        if task.identifier and workspace_name and workspace_name != GLOBAL_WORKSPACE_NAME
+        else f'<div class="task-pill">{identifier}</div>'
+    )
+    requirement_markup = (
+        f'<a class="task-pill" href="{requirement_detail_href(workspace_name, task.requirement)}">{requirement}</a>'
+        if task.requirement and workspace_name and workspace_name != GLOBAL_WORKSPACE_NAME
+        else f'<div class="task-pill">{requirement}</div>'
     )
     return (
         "<div class=\"specialized-view current-task-view\">"
         "<section class=\"focus-card\">"
         "<p class=\"section-kicker\">Tarea Activa</p>"
         f"<h2>{title}</h2>"
-        f"<div class=\"task-pill\">{identifier}</div>"
-        f"{refinement}"
+        "<div class=\"task-pill-group\">"
+        f"{identifier_markup}"
+        f"{requirement_markup}"
+        "</div>"
         f"<p class=\"focus-objective\">{objective}</p>"
         "</section>"
         "<section class=\"task-grid\">"
@@ -2090,7 +2109,6 @@ def render_current_task_view(content: str, workspace_name: str) -> str:
 def parse_task_catalog(content: str) -> list[BacklogTask]:
     tasks: list[BacklogTask] = []
     current_task: BacklogTask | None = None
-    global_refinement_id = extract_global_refinement_id(content)
 
     for raw_line in content.splitlines():
         line = raw_line.rstrip()
@@ -2100,7 +2118,7 @@ def parse_task_catalog(content: str) -> list[BacklogTask]:
             current_task = BacklogTask(
                 identifier=identifier,
                 title=line[4:].strip(),
-                refinement_id="",
+                requirement_id="",
                 bullets=[],
                 detail_lines=[],
             )
@@ -2123,17 +2141,15 @@ def parse_task_catalog(content: str) -> list[BacklogTask]:
             current_task.bullets.append(stripped[2:].strip())
 
     for task in tasks:
-        task.refinement_id = extract_refinement_id(task.detail_lines)
-        if not task.refinement_id and global_refinement_id:
-            task.refinement_id = global_refinement_id
+        task.requirement_id = extract_requirement_id(task.detail_lines)
 
     if tasks:
         return tasks
 
-    return parse_task_catalog_table(content, global_refinement_id)
+    return parse_task_catalog_table(content)
 
 
-def parse_task_catalog_table(content: str, global_refinement_id: str) -> list[BacklogTask]:
+def parse_task_catalog_table(content: str) -> list[BacklogTask]:
     tasks: list[BacklogTask] = []
     for raw_line in content.splitlines():
         line = raw_line.strip()
@@ -2148,21 +2164,21 @@ def parse_task_catalog_table(content: str, global_refinement_id: str) -> list[Ba
         if not identifier:
             continue
         title = cells[1] or identifier
+        requirement_id = extract_requirement_id([cells[2]]) if len(cells) > 2 else ""
         detail_lines = []
-        refinement_id = global_refinement_id
-        if refinement_id:
-            detail_lines.append(f"- Refinement: {refinement_id}")
-        if cells[2]:
-            detail_lines.append(f"- Description: {cells[2]}")
-        if cells[3]:
-            detail_lines.append(f"- Acceptance Criteria: {cells[3]}")
+        if requirement_id:
+            detail_lines.append(f"- Requirement: {requirement_id}")
+        if len(cells) > 3 and cells[3]:
+            detail_lines.append(f"- Description: {cells[3]}")
         if len(cells) > 4 and cells[4]:
-            detail_lines.append(f"- Dependencies: {cells[4]}")
+            detail_lines.append(f"- Acceptance Criteria: {cells[4]}")
+        if len(cells) > 5 and cells[5]:
+            detail_lines.append(f"- Dependencies: {cells[5]}")
         tasks.append(
             BacklogTask(
                 identifier=identifier,
                 title=f"{identifier} - {title}",
-                refinement_id=refinement_id,
+                requirement_id=requirement_id,
                 bullets=[line[2:].strip() for line in detail_lines if line.startswith("- ")],
                 detail_lines=detail_lines,
             )
@@ -2241,7 +2257,7 @@ def _parse_board_item(line: str) -> BoardItem | None:
     if not stripped.startswith("- "):
         return None
     body = stripped[2:].strip()
-    match = re.match(r"^`?(T\d{2}|R\d{2})`?(?:\s*[:\-]\s*(.*))?$", body)
+    match = re.match(r"^`?(T\d{2})`?(?:\s*[:\-]\s*(.*))?$", body)
     if not match:
         return None
     return BoardItem(identifier=match.group(1), note=(match.group(2) or "").strip())
@@ -2258,7 +2274,7 @@ def order_board_sections(sections: list[BoardSection]) -> list[BoardSection]:
 def parse_current_task(content: str) -> CurrentTaskView:
     title = first_heading(content) or "Tarea activa"
     identifier = first_value_after_heading(content, "Identificador")
-    refinement = first_value_after_heading(content, "Refinamiento")
+    requirement = first_value_after_heading(content, "Requerimiento") or first_value_after_heading(content, "Requirement")
     objective = (
         collect_section_paragraph(content, "Objetivo")
         or collect_section_paragraph(content, "Descripcion")
@@ -2275,7 +2291,7 @@ def parse_current_task(content: str) -> CurrentTaskView:
     return CurrentTaskView(
         title=title,
         identifier=identifier,
-        refinement=refinement,
+        requirement=requirement,
         objective=objective,
         acceptance=acceptance,
         notes=notes,
@@ -2313,20 +2329,20 @@ def render_status_chip(label: str) -> str:
 
 
 def render_status_value(label: str, value: str, active_feature: str) -> str:
-    if label == "Active Refinement":
+    if label == "Active Requirement":
         workspace_name = active_feature.strip()
-        refinement_id = normalize_refinement_identifier(value)
-        if workspace_name and workspace_name != "(none)" and refinement_id:
+        requirement_id = normalize_requirement_identifier(value)
+        if workspace_name and workspace_name != "(none)" and requirement_id:
             return (
-                f'<a class="doc-link" href="{refinement_detail_href(workspace_name, refinement_id)}">'
-                f"{html.escape(refinement_id)}</a>"
+                f'<a class="doc-link" href="{requirement_detail_href(workspace_name, requirement_id)}">'
+                f"{html.escape(requirement_id)}</a>"
             )
     return html.escape(value)
 
 
 def split_task_title(title: str) -> tuple[str, str]:
     cleaned = title.strip()
-    match = re.match(r"^`?(T\d{2}|R\d{2})`?\s*[:\-]?\s*(.*)$", cleaned)
+    match = re.match(r"^`?(T\d{2})`?\s*[:\-]?\s*(.*)$", cleaned)
     if match:
         identifier = match.group(1).strip()
         summary = match.group(2).strip() or identifier
@@ -2334,48 +2350,28 @@ def split_task_title(title: str) -> tuple[str, str]:
     return "", cleaned
 
 
-def extract_refinement_id(detail_lines: list[str]) -> str:
-    for line in detail_lines:
-        cleaned = line.strip()
-        if cleaned.startswith("- "):
-            cleaned = cleaned[2:].strip()
-        match = re.match(
-            r"^(Refinement|Refinamiento)\s*:\s*`?(R\d{2})`?\s*$",
-            cleaned,
-            re.IGNORECASE,
-        )
-        if match:
-            return match.group(2).upper()
-    return ""
-
-
-def extract_global_refinement_id(content: str) -> str:
-    normalized = content.replace("*", "")
-    match = re.search(
-        r"(?:Refinement Group|Grupo de refinamiento|Refinamiento)\s*:?\s*`?(R\d{2})`?",
-        normalized,
-        re.IGNORECASE,
-    )
-    return match.group(1).upper() if match else ""
-
-
 def normalize_task_identifier(value: str) -> str:
     match = re.search(r"\b(T\d{2})\b", value.strip(), re.IGNORECASE)
     return match.group(1).upper() if match else ""
 
 
-def normalize_refinement_identifier(value: str) -> str:
-    match = re.search(r"\b(R\d{2})\b", value.strip(), re.IGNORECASE)
+def normalize_requirement_identifier(value: str) -> str:
+    match = re.search(r"\b((?:RF|RNF)\d{2})\b", value.strip(), re.IGNORECASE)
     return match.group(1).upper() if match else ""
 
 
-def build_refinement_index(tasks: dict[str, BacklogTask]) -> dict[str, list[str]]:
-    refinement_index: dict[str, list[str]] = {}
-    for identifier, task in tasks.items():
-        if not task.refinement_id:
-            continue
-        refinement_index.setdefault(task.refinement_id, []).append(identifier)
-    return refinement_index
+def extract_requirement_id(lines: list[str]) -> str:
+    for raw_line in lines:
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        match = re.match(r"^(Requirement|Requerimiento)\s*:\s*`?((?:RF|RNF)\d{2})`?\s*$", line, re.IGNORECASE)
+        if match:
+            return match.group(2).upper()
+        fallback = re.search(r"\b((?:RF|RNF)\d{2})\b", line, re.IGNORECASE)
+        if fallback:
+            return fallback.group(1).upper()
+    return ""
 
 
 def read_task_catalog(workspace_name: str, iteraspec_root: Path) -> dict[str, BacklogTask]:
@@ -2398,8 +2394,6 @@ def render_backlog_tasks(
     tasks: list[BacklogTask],
     section_key: str,
     workspace_name: str,
-    refinement_index: dict[str, list[str]],
-    tasks_by_id: dict[str, BacklogTask],
 ) -> str:
     if not tasks:
         return "<div class=\"empty-task-card\">Sin tareas en esta columna.</div>"
@@ -2414,7 +2408,7 @@ def render_backlog_tasks(
         )
         rendered.append(
             "<article class=\"task-card\">"
-            f"<a class=\"task-card-button\" href=\"{task_href}\" target=\"_blank\" rel=\"noreferrer\">"
+            f"<a class=\"task-card-button\" href=\"{task_href}\">"
             "<div class=\"task-card-title-row\">"
             "<span class=\"task-state-dot\"></span>"
             "<div class=\"task-card-copy\">"
@@ -2434,7 +2428,6 @@ def render_board_items(
     section_key: str,
     workspace_name: str,
     tasks_by_id: dict[str, BacklogTask],
-    refinement_index: dict[str, list[str]],
 ) -> str:
     if not items:
         return "<div class=\"empty-task-card\">Sin tareas en esta columna.</div>"
@@ -2446,7 +2439,7 @@ def render_board_items(
         note_markup = f"<p>{html.escape(item.note)}</p>" if item.note else "<p>Ver detalle</p>"
         rendered.append(
             "<article class=\"task-card\">"
-            f"<a class=\"task-card-button\" href=\"{task_href}\" target=\"_blank\" rel=\"noreferrer\">"
+            f"<a class=\"task-card-button\" href=\"{task_href}\">"
             "<div class=\"task-card-title-row\">"
             "<span class=\"task-state-dot\"></span>"
             "<div class=\"task-card-copy\">"
@@ -2461,51 +2454,10 @@ def render_board_items(
     return "".join(rendered)
 
 
-def render_task_detail(task: BacklogTask, workspace_name: str = "", hide_refinement: bool = False) -> str:
-    detail_lines = task.detail_lines
-    if hide_refinement:
-        detail_lines = [
-            line
-            for line in task.detail_lines
-            if not re.match(r"^\s*-\s*(Refinement|Refinamiento)\s*:\s*`?R\d{2}`?\s*$", line, re.IGNORECASE)
-        ]
-    if detail_lines:
-        return render_markdown("\n".join(detail_lines), workspace_name)
+def render_task_detail(task: BacklogTask, workspace_name: str = "") -> str:
+    if task.detail_lines:
+        return render_markdown("\n".join(task.detail_lines), workspace_name)
     return "<p>Esta tarea no tiene detalle adicional en el backlog.</p>"
-
-
-def render_refinement_panel(
-    task_identifier: str,
-    workspace_name: str,
-    refinement_id: str,
-    refinement_index: dict[str, list[str]],
-    tasks_by_id: dict[str, BacklogTask],
-) -> str:
-    if not refinement_id:
-        return ""
-    sibling_ids = [identifier for identifier in refinement_index.get(refinement_id, []) if identifier != task_identifier]
-    related_links = "".join(
-        (
-            f"<li><a class=\"doc-link\" href=\"{task_detail_href(workspace_name, identifier)}\" target=\"_blank\" rel=\"noreferrer\">"
-            f"{html.escape(identifier)} - {html.escape(split_task_title(tasks_by_id[identifier].title)[1])}"
-            "</a></li>"
-        )
-        for identifier in sibling_ids
-        if identifier in tasks_by_id
-    )
-    related_markup = (
-        f"<ul>{related_links}</ul>"
-        if related_links
-        else "<p>No hay otras tareas asociadas a este refinamiento.</p>"
-    )
-    return (
-        "<article class=\"task-modal-panel\">"
-        "<h4>Refinamiento</h4>"
-        f'<p><a class="task-code-chip" href="{refinement_detail_href(workspace_name, refinement_id)}">{html.escape(refinement_id)}</a></p>'
-        "<h4>Tareas relacionadas</h4>"
-        f"{related_markup}"
-        "</article>"
-    )
 
 
 def task_detail_href(workspace_name: str, identifier: str) -> str:
@@ -2513,9 +2465,9 @@ def task_detail_href(workspace_name: str, identifier: str) -> str:
     return f"/workspaces/{workspace_name}/tasks/{normalized}"
 
 
-def refinement_detail_href(workspace_name: str, refinement_id: str) -> str:
-    normalized = normalize_refinement_identifier(refinement_id) or refinement_id.strip().upper() or "R00"
-    return f"/workspaces/{workspace_name}/refinements/{normalized}"
+def requirement_detail_href(workspace_name: str, requirement_id: str) -> str:
+    normalized = normalize_requirement_identifier(requirement_id) or requirement_id.strip().upper() or "RF00"
+    return f"/workspaces/{workspace_name}/requirements/{normalized}"
 
 
 def find_board_item(identifier: str, workspace_name: str, iteraspec_root: Path) -> tuple[BoardItem | None, str]:
@@ -2531,8 +2483,15 @@ def find_board_item(identifier: str, workspace_name: str, iteraspec_root: Path) 
     return None, ""
 
 
-def extract_refinement_spec_section(content: str, refinement_id: str) -> tuple[str, str]:
-    heading_match = re.search(rf"^(#+)\s+.*\b{re.escape(refinement_id)}\b.*$", content, re.MULTILINE)
+def render_task_bullets(bullets: list[str]) -> str:
+    if not bullets:
+        return "<p class=\"muted\">Sin detalle adicional.</p>"
+    items = "".join(f"<li>{html.escape(item)}</li>" for item in bullets[:4])
+    return f"<ul>{items}</ul>"
+
+
+def extract_requirement_spec_section(content: str, requirement_id: str) -> tuple[str, str]:
+    heading_match = re.search(rf"^(#+)\s+.*\b{re.escape(requirement_id)}\b.*$", content, re.MULTILINE)
     if heading_match:
         level = len(heading_match.group(1))
         lines = content[heading_match.start():].splitlines()
@@ -2544,7 +2503,7 @@ def extract_refinement_spec_section(content: str, refinement_id: str) -> tuple[s
         return heading_match.group(0).lstrip("# ").strip(), "\n".join(collected).strip()
 
     lines = content.splitlines()
-    matching_indexes = [index for index, line in enumerate(lines) if refinement_id in line]
+    matching_indexes = [index for index, line in enumerate(lines) if requirement_id in line]
     if not matching_indexes:
         return "", ""
 
@@ -2557,14 +2516,15 @@ def extract_refinement_spec_section(content: str, refinement_id: str) -> tuple[s
         end += 1
 
     excerpt = "\n".join(lines[start:end]).strip()
-    return f"Refinamiento {refinement_id}", excerpt
+    return f"Requerimiento {requirement_id}", excerpt
 
 
-def render_task_bullets(bullets: list[str]) -> str:
-    if not bullets:
-        return "<p class=\"muted\">Sin detalle adicional.</p>"
-    items = "".join(f"<li>{html.escape(item)}</li>" for item in bullets[:4])
-    return f"<ul>{items}</ul>"
+def split_requirement_title(section_title: str, requirement_id: str) -> str:
+    cleaned = section_title.strip()
+    match = re.match(rf"^(?:Requerimiento\s+)?{re.escape(requirement_id)}\s*[-:]\s*(.+)$", cleaned, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    return cleaned or requirement_id
 
 
 def first_heading(content: str) -> str | None:
@@ -2702,7 +2662,10 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
         "<article class=\"dashboard-focus-card\">"
         "<p class=\"section-kicker\">Tarea Activa</p>"
         f"<h3>{html.escape(current_task['title'])}</h3>"
-        f"<div class=\"task-pill\">{html.escape(current_task['identifier'])}</div>"
+        "<div class=\"task-pill-group\">"
+        f'<a class="task-pill" href="{task_detail_href(active_name, current_task["identifier"])}">{html.escape(current_task["identifier"])}</a>'
+        f'<a class="task-pill" href="{requirement_detail_href(active_name, current_task["requirement"])}">{html.escape(current_task["requirement"])}</a>'
+        "</div>"
         f"<p>{html.escape(current_task['objective'])}</p>"
         f"<a class=\"primary-link\" href=\"/workspaces/{active_name}/documents/current_task.md\">Abrir tarea activa</a>"
         "</article>"
@@ -2815,6 +2778,7 @@ def _read_current_task_snapshot(workspace_name: str, iteraspec_root: Path) -> di
     return {
         "title": parsed.title or "Tarea activa",
         "identifier": parsed.identifier or "Sin identificador",
+        "requirement": parsed.requirement or "Sin requerimiento",
         "objective": parsed.objective or "Sin objetivo detectado.",
     }
 
@@ -2825,20 +2789,12 @@ def _render_task_page(
     task: BacklogTask,
     board_item: BoardItem | None,
     board_label: str,
-    refinement_index: dict[str, list[str]],
     tasks_by_id: dict[str, BacklogTask],
 ) -> str:
     identifier, summary = split_task_title(task.title)
     navigation = _render_sidebar(workspaces, workspace_name, "backlog.md")
     theme_switcher = render_theme_switcher()
-    detail_markup = render_task_detail(task, workspace_name, hide_refinement=True)
-    refinement_panel = render_refinement_panel(
-        identifier,
-        workspace_name,
-        task.refinement_id,
-        refinement_index,
-        tasks_by_id,
-    )
+    detail_markup = render_task_detail(task, workspace_name)
     note_panel = (
         "<article class=\"task-modal-panel\">"
         "<h4>Nota de estado</h4>"
@@ -2853,6 +2809,14 @@ def _render_task_page(
         f"<p>{render_status_chip(board_label)}</p>"
         "</article>"
         if board_label
+        else ""
+    )
+    requirement_panel = (
+        "<article class=\"task-modal-panel\">"
+        "<h4>Requerimiento asociado</h4>"
+        f'<p><a class="task-code-chip" href="{requirement_detail_href(workspace_name, task.requirement_id)}">{html.escape(task.requirement_id)}</a></p>'
+        "</article>"
+        if task.requirement_id
         else ""
     )
     return f"""<!doctype html>
@@ -2881,13 +2845,16 @@ def _render_task_page(
           <p class="eyebrow">Detalle de tarea</p>
           <h1>{html.escape(summary)}</h1>
           <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(workspace_name))}</code></p>
-          {f'<div class="task-pill">{html.escape(identifier)}</div>' if identifier else ''}
+          <div class="task-pill-group">
+            {f'<a class="task-pill" href="{task_detail_href(workspace_name, identifier)}">{html.escape(identifier)}</a>' if identifier else ''}
+            {f'<a class="task-pill" href="{requirement_detail_href(workspace_name, task.requirement_id)}">{html.escape(task.requirement_id)}</a>' if task.requirement_id else ''}
+          </div>
         </header>
         <article class="markdown-body">
           <div class="specialized-view current-task-view">
             <section class="task-grid">
               {state_panel}
-              {refinement_panel}
+              {requirement_panel}
               {note_panel}
             </section>
             <section class="task-panel">
@@ -2903,16 +2870,17 @@ def _render_task_page(
 </html>"""
 
 
-def _render_refinement_page(
+def _render_requirement_page(
     workspaces: list[IteraSpecWorkspace],
     workspace_name: str,
-    refinement_id: str,
+    requirement_id: str,
     section_title: str,
     section_content: str,
     related_tasks: list[BacklogTask],
 ) -> str:
     navigation = _render_sidebar(workspaces, workspace_name, "specs.md")
     theme_switcher = render_theme_switcher()
+    requirement_title = split_requirement_title(section_title, requirement_id)
     related_markup = "".join(
         (
             "<li>"
@@ -2929,7 +2897,7 @@ def _render_refinement_page(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{html.escape(refinement_id)} · IteraSpec GUI Viewer</title>
+    <title>{html.escape(requirement_title)} · IteraSpec GUI Viewer</title>
     {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -2947,19 +2915,18 @@ def _render_refinement_page(
           <label class="sidebar-toggle" for="sidebar-toggle"></label>
         </div>
         <header class="document-header">
-          <p class="eyebrow">Detalle de refinamiento</p>
-          <h1>{html.escape(refinement_id)}</h1>
+          <p class="eyebrow">Detalle de requerimiento</p>
+          <h1>{html.escape(requirement_title)}</h1>
           <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(workspace_name))}</code></p>
+          <div class="task-pill-group">
+            <a class="task-pill" href="{requirement_detail_href(workspace_name, requirement_id)}">{html.escape(requirement_id)}</a>
+          </div>
         </header>
         <article class="markdown-body">
           <div class="specialized-view current-task-view">
             <section class="task-grid">
-              <article class="task-panel">
-                <h3>Resumen</h3>
-                <p>{_render_inline(section_title, workspace_name)}</p>
-              </article>
-              <article class="task-panel">
-                <h3>Tareas relacionadas</h3>
+              <article class="task-modal-panel">
+                <h4>Tareas relacionadas</h4>
                 <ul>{related_markup}</ul>
               </article>
             </section>
