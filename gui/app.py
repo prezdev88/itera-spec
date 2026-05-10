@@ -507,7 +507,8 @@ h1 {
 
 .markdown-body p,
 .markdown-body ul,
-.markdown-body pre {
+.markdown-body pre,
+.markdown-body .table-scroll {
   margin: 0 0 1rem;
 }
 
@@ -527,6 +528,43 @@ h1 {
   color: #eef6f4;
 }
 
+.markdown-body .table-scroll {
+  overflow-x: auto;
+}
+
+.markdown-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(31, 28, 23, 0.12);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.markdown-table th,
+.markdown-table td {
+  padding: 14px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(31, 28, 23, 0.08);
+}
+
+.markdown-table th {
+  background: rgba(15, 118, 110, 0.12);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.markdown-table tbody tr:nth-child(even) {
+  background: rgba(15, 118, 110, 0.04);
+}
+
+.markdown-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 .specialized-view {
   display: grid;
   gap: 20px;
@@ -534,7 +572,7 @@ h1 {
 
 .status-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
@@ -548,6 +586,17 @@ h1 {
   background: rgba(255, 255, 255, 0.62);
 }
 
+.status-summary-card {
+  padding: 16px 18px;
+}
+
+.status-summary-card span {
+  display: block;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .task-card {
   padding: 0;
   border: 0;
@@ -557,9 +606,173 @@ h1 {
 
 .status-summary-card strong {
   display: block;
-  margin-top: 14px;
-  font-size: 2rem;
+  margin-top: 10px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  font-weight: 520;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.status-value {
+  margin: 10px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 520;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.specialized-view.status-view {
+  gap: 16px;
+}
+
+.status-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(220px, 0.8fr);
+  gap: 18px;
+  padding: 20px 22px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 251, 245, 0.74));
+  box-shadow: 0 18px 40px rgba(87, 64, 30, 0.08);
+}
+
+.status-hero-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.status-eyebrow {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.status-hero-copy p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.status-phase-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(15, 118, 110, 0.12);
+}
+
+.status-phase-card span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-phase-card strong {
+  font-size: 1.8rem;
   line-height: 1;
+  font-weight: 600;
+}
+
+.status-phase-value {
+  margin: 0;
+  font-size: 1.8rem;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.status-phase-card .status-chip {
+  margin-top: 2px;
+}
+
+.status-topline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.status-summary-card.compact {
+  min-height: 118px;
+}
+
+.status-summary-card.compact strong {
+  font-size: 1.05rem;
+  line-height: 1.3;
+  font-weight: 520;
+}
+
+.status-action-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.status-action-card p {
+  margin: 0;
+}
+
+.status-action-card strong {
+  font-size: 1.08rem;
+  line-height: 1.55;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.status-action-value {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.55;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.status-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.status-meta-card {
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.status-meta-card dt {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-meta-card dd {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (min-width: 960px) {
+  .status-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
 }
 
 .backlog-board {
@@ -861,6 +1074,10 @@ code {
     grid-template-columns: 1fr;
   }
 
+  .status-hero {
+    grid-template-columns: 1fr;
+  }
+
   .reader-shell {
     grid-template-columns: 1fr;
     width: min(100% - 20px, 1280px);
@@ -1094,6 +1311,56 @@ def create_app() -> FastAPI:
             iteraspec_root,
         )
 
+    @app.get("/workspaces/{workspace_name}/tasks/{task_identifier}", response_class=HTMLResponse)
+    async def workspace_task_page(workspace_name: str, task_identifier: str) -> str:
+        workspaces = discover_workspaces(iteraspec_root)
+        identifier = normalize_task_identifier(task_identifier) or task_identifier.strip().upper()
+        tasks_by_id = read_task_catalog(workspace_name, iteraspec_root)
+        task = tasks_by_id.get(identifier)
+        if task is None:
+            raise HTTPException(status_code=404, detail=f"No se encontró la tarea {identifier}.")
+
+        board_item, board_label = find_board_item(identifier, workspace_name, iteraspec_root)
+        refinement_index = build_refinement_index(tasks_by_id)
+        return _render_task_page(
+            workspaces,
+            workspace_name,
+            task,
+            board_item,
+            board_label,
+            refinement_index,
+            tasks_by_id,
+        )
+
+    @app.get("/workspaces/{workspace_name}/refinements/{refinement_id}", response_class=HTMLResponse)
+    async def workspace_refinement_page(workspace_name: str, refinement_id: str) -> str:
+        workspaces = discover_workspaces(iteraspec_root)
+        normalized = normalize_refinement_identifier(refinement_id)
+        if not normalized:
+            raise HTTPException(status_code=404, detail=f"Refinamiento no válido: {refinement_id}.")
+
+        try:
+            loaded = read_workspace_document(workspace_name, "specs.md", iteraspec_root)
+        except InvalidDocumentRequestError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except DocumentNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+        section_title, section_content = extract_refinement_spec_section(loaded.content, normalized)
+        if not section_content:
+            raise HTTPException(status_code=404, detail=f"No se encontró contexto para {normalized} en specs.md.")
+
+        tasks_by_id = read_task_catalog(workspace_name, iteraspec_root)
+        related_tasks = [task for task in tasks_by_id.values() if task.refinement_id == normalized]
+        return _render_refinement_page(
+            workspaces,
+            workspace_name,
+            normalized,
+            section_title,
+            section_content,
+            related_tasks,
+        )
+
     return app
 
 
@@ -1220,24 +1487,25 @@ def _ensure_within_root(candidate: Path, root: Path) -> None:
         ) from exc
 
 
-def render_markdown(markdown_text: str) -> str:
+def render_markdown(markdown_text: str, workspace_name: str = "") -> str:
     lines = markdown_text.splitlines()
     parts: list[str] = []
     paragraph: list[str] = []
     list_items: list[str] = []
     code_block: list[str] = []
     in_code_block = False
+    index = 0
 
     def flush_paragraph() -> None:
         if paragraph:
             text = " ".join(segment.strip() for segment in paragraph if segment.strip())
             if text:
-                parts.append(f"<p>{_render_inline(text)}</p>")
+                parts.append(f"<p>{_render_inline(text, workspace_name)}</p>")
             paragraph.clear()
 
     def flush_list() -> None:
         if list_items:
-            items = "".join(f"<li>{_render_inline(item)}</li>" for item in list_items)
+            items = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in list_items)
             parts.append(f"<ul>{items}</ul>")
             list_items.clear()
 
@@ -1247,7 +1515,8 @@ def render_markdown(markdown_text: str) -> str:
             parts.append(f"<pre><code>{html.escape(code)}</code></pre>")
             code_block.clear()
 
-    for line in lines:
+    while index < len(lines):
+        line = lines[index]
         stripped = line.rstrip()
 
         if stripped.startswith("```"):
@@ -1258,15 +1527,18 @@ def render_markdown(markdown_text: str) -> str:
                 in_code_block = False
             else:
                 in_code_block = True
+            index += 1
             continue
 
         if in_code_block:
             code_block.append(line)
+            index += 1
             continue
 
         if not stripped.strip():
             flush_paragraph()
             flush_list()
+            index += 1
             continue
 
         if stripped.startswith("#"):
@@ -1274,16 +1546,27 @@ def render_markdown(markdown_text: str) -> str:
             flush_list()
             level = min(len(stripped) - len(stripped.lstrip("#")), 6)
             content = stripped[level:].strip()
-            parts.append(f"<h{level}>{_render_inline(content)}</h{level}>")
+            parts.append(f"<h{level}>{_render_inline(content, workspace_name)}</h{level}>")
+            index += 1
             continue
 
         if stripped.lstrip().startswith(("- ", "* ")):
             flush_paragraph()
             item = stripped.lstrip()[2:].strip()
             list_items.append(item)
+            index += 1
+            continue
+
+        if _looks_like_markdown_table_header(lines, index):
+            flush_paragraph()
+            flush_list()
+            table_html, next_index = _render_markdown_table(lines, index, workspace_name)
+            parts.append(table_html)
+            index = next_index
             continue
 
         paragraph.append(stripped)
+        index += 1
 
     if in_code_block:
         flush_code_block()
@@ -1293,23 +1576,162 @@ def render_markdown(markdown_text: str) -> str:
     return "\n".join(parts) if parts else "<p class=\"muted\">Documento vacío.</p>"
 
 
-def _render_inline(text: str) -> str:
-    escaped = html.escape(text)
-    return _replace_code_spans(escaped)
+def _render_inline(text: str, workspace_name: str = "") -> str:
+    tokens: list[tuple[str, str]] = []
+    protected = _extract_inline_tokens(text, tokens)
+    escaped = html.escape(protected)
+    escaped = _replace_markdown_links(escaped)
+    escaped = _replace_emphasis(escaped)
+    escaped = _replace_refinement_mentions(escaped, workspace_name)
+    return _restore_inline_tokens(escaped, tokens)
 
 
-def _replace_code_spans(text: str) -> str:
-    parts = text.split("`")
-    if len(parts) == 1:
+def _looks_like_markdown_table_header(lines: list[str], index: int) -> bool:
+    if index + 1 >= len(lines):
+        return False
+    header = lines[index].strip()
+    divider = lines[index + 1].strip()
+    if "|" not in header or "|" not in divider:
+        return False
+    header_cells = _split_markdown_table_row(header)
+    divider_cells = _split_markdown_table_row(divider)
+    if len(header_cells) < 2 or len(header_cells) != len(divider_cells):
+        return False
+    return all(_is_markdown_table_divider(cell) for cell in divider_cells)
+
+
+def _render_markdown_table(lines: list[str], start_index: int, workspace_name: str = "") -> tuple[str, int]:
+    header_cells = _split_markdown_table_row(lines[start_index].strip())
+    alignments = [
+        _table_alignment_for_divider(cell)
+        for cell in _split_markdown_table_row(lines[start_index + 1].strip())
+    ]
+    body_rows: list[list[str]] = []
+    index = start_index + 2
+
+    while index < len(lines):
+        candidate = lines[index].strip()
+        if not candidate or "|" not in candidate:
+            break
+        row_cells = _split_markdown_table_row(candidate)
+        if len(row_cells) != len(header_cells):
+            break
+        body_rows.append(row_cells)
+        index += 1
+
+    thead = "".join(
+        _render_table_cell("th", cell, alignments[position], workspace_name)
+        for position, cell in enumerate(header_cells)
+    )
+    tbody = "".join(
+        "<tr>"
+        + "".join(
+            _render_table_cell("td", cell, alignments[position], workspace_name)
+            for position, cell in enumerate(row)
+        )
+        + "</tr>"
+        for row in body_rows
+    )
+    table_parts = [
+        "<div class=\"table-scroll\">",
+        "<table class=\"markdown-table\">",
+        f"<thead><tr>{thead}</tr></thead>",
+    ]
+    if tbody:
+        table_parts.append(f"<tbody>{tbody}</tbody>")
+    table_parts.extend(["</table>", "</div>"])
+    return "".join(table_parts), index
+
+
+def _render_table_cell(tag: str, text: str, alignment: str | None, workspace_name: str = "") -> str:
+    style_attr = f' style="text-align: {alignment};"' if alignment else ""
+    return f"<{tag}{style_attr}>{_render_inline(text.strip(), workspace_name)}</{tag}>"
+
+
+def _split_markdown_table_row(row: str) -> list[str]:
+    trimmed = row.strip()
+    if trimmed.startswith("|"):
+        trimmed = trimmed[1:]
+    if trimmed.endswith("|"):
+        trimmed = trimmed[:-1]
+    return [cell.strip() for cell in trimmed.split("|")]
+
+
+def _is_markdown_table_divider(cell: str) -> bool:
+    normalized = cell.strip()
+    if not normalized:
+        return False
+    core = normalized.replace(":", "").replace("-", "")
+    return not core and normalized.count("-") >= 3
+
+
+def _table_alignment_for_divider(cell: str) -> str | None:
+    normalized = cell.strip()
+    if normalized.startswith(":") and normalized.endswith(":"):
+        return "center"
+    if normalized.endswith(":"):
+        return "right"
+    if normalized.startswith(":"):
+        return "left"
+    return None
+
+
+def _extract_inline_tokens(text: str, tokens: list[tuple[str, str]]) -> str:
+    parts: list[str] = []
+    cursor = 0
+
+    for match in re.finditer(r"`([^`]+)`", text):
+        parts.append(text[cursor:match.start()])
+        placeholder = f"@@CODETOKEN{len(tokens)}@@"
+        tokens.append((placeholder, f"<code>{html.escape(match.group(1))}</code>"))
+        parts.append(placeholder)
+        cursor = match.end()
+
+    parts.append(text[cursor:])
+    return "".join(parts)
+
+
+def _restore_inline_tokens(text: str, tokens: list[tuple[str, str]]) -> str:
+    restored = text
+    for placeholder, replacement in tokens:
+        restored = restored.replace(html.escape(placeholder), replacement)
+    return restored
+
+
+def _replace_markdown_links(text: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        label = match.group(1)
+        url = html.escape(html.unescape(match.group(2)), quote=True)
+        return f'<a href="{url}" target="_blank" rel="noreferrer">{label}</a>'
+
+    return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", replace, text)
+
+
+def _replace_emphasis(text: str) -> str:
+    rendered = re.sub(r"(?<!\*)\*\*([^*\n]+)\*\*(?!\*)", r"<strong>\1</strong>", text)
+    rendered = re.sub(r"(?<!_)__([^_\n]+)__(?!_)", r"<strong>\1</strong>", rendered)
+    rendered = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", rendered)
+    rendered = re.sub(r"(?<!_)_([^_\n]+)_(?!_)", r"<em>\1</em>", rendered)
+    return rendered
+
+
+def _replace_refinement_mentions(text: str, workspace_name: str) -> str:
+    if not workspace_name or workspace_name == GLOBAL_WORKSPACE_NAME:
         return text
 
-    rendered: list[str] = []
-    for index, part in enumerate(parts):
-        if index % 2 == 0:
-            rendered.append(part)
-        else:
-            rendered.append(f"<code>{part}</code>")
-    return "".join(rendered)
+    def replace_segment(segment: str) -> str:
+        return re.sub(
+            r"\b(R\d{2})\b",
+            lambda match: (
+                f'<a href="{refinement_detail_href(workspace_name, match.group(1))}" '
+                'target="_blank" rel="noreferrer">'
+                f"{match.group(1)}</a>"
+            ),
+            segment,
+        )
+
+    parts = re.split(r"(<[^>]+>)", text)
+    return "".join(part if part.startswith("<") and part.endswith(">") else replace_segment(part) for part in parts)
 
 
 def render_specialized_document(
@@ -1323,9 +1745,9 @@ def render_specialized_document(
     if document_name == "board.md":
         return render_board_view(content, workspace_name, iteraspec_root)
     if document_name == "backlog.md":
-        return render_backlog_view(content)
+        return render_backlog_view(content, workspace_name)
     if document_name == "current_task.md":
-        return render_current_task_view(content)
+        return render_current_task_view(content, workspace_name)
     return None
 
 
@@ -1333,38 +1755,87 @@ def render_status_view(content: str) -> str:
     key_values = parse_status_key_values(content)
     if not key_values:
         return (
-            "<div class=\"specialized-view\">"
+            "<div class=\"specialized-view status-view\">"
             "<section class=\"focus-card\">"
             "<p class=\"section-kicker\">Estado Global</p>"
             "<h2>status.md</h2>"
             "<p>No se detectó una estructura resumible. Se muestra como Markdown estándar.</p>"
             "</section>"
-            f"{render_markdown(content)}"
+            f"{render_markdown(content, workspace_name)}"
             "</div>"
         )
 
-    cards = "".join(
+    status_map = {label: value for label, value in key_values}
+    active_feature = status_map.get("Active Feature", "(none)")
+    current_phase = status_map.get("Current Phase", "(none)")
+    phase_state = status_map.get("Phase State", "Unknown")
+    last_approved_phase = status_map.get("Last Approved Phase", "(none)")
+    active_task = status_map.get("Active Task", "(none)")
+    active_refinement = status_map.get("Active Refinement", "(none)")
+    next_expected_action = status_map.get("Next Expected Action", "Sin proximo paso detectado.")
+
+    topline_cards = "".join(
         (
-            "<article class=\"status-summary-card\">"
+            "<article class=\"status-summary-card compact\">"
             f"<span>{html.escape(label)}</span>"
-            f"<strong>{html.escape(value)}</strong>"
+            f"<p class=\"status-value\">{render_status_value(label, value, active_feature)}</p>"
             "</article>"
         )
-        for label, value in key_values[:8]
+        for label, value in [
+            ("Active Feature", active_feature),
+            ("Last Approved Phase", last_approved_phase),
+            ("Active Task", active_task),
+            ("Active Refinement", active_refinement),
+        ]
+    )
+    extra_pairs = [
+        (label, value)
+        for label, value in key_values
+        if label
+        not in {
+            "Active Feature",
+            "Current Phase",
+            "Phase State",
+            "Last Approved Phase",
+            "Active Task",
+            "Active Refinement",
+            "Next Expected Action",
+        }
+    ]
+    extra_cards = "".join(
+        (
+            "<div class=\"status-meta-card\">"
+            f"<dt>{html.escape(label)}</dt>"
+            f"<dd>{html.escape(value)}</dd>"
+            "</div>"
+        )
+        for label, value in extra_pairs
     )
     return (
-        "<div class=\"specialized-view\">"
-        "<section class=\"focus-card\">"
+        "<div class=\"specialized-view status-view\">"
+        "<section class=\"status-hero\">"
+        "<div class=\"status-hero-copy\">"
         "<p class=\"section-kicker\">Estado Global</p>"
-        "<h2>Resumen de reanudación</h2>"
+        "<p class=\"status-eyebrow\">Resumen de reanudacion</p>"
         "<p>Checkpoint persistido en <code>.iteraspec/status.md</code>.</p>"
+        "</div>"
+        "<aside class=\"status-phase-card\">"
+        "<span>Fase actual</span>"
+        f"<p class=\"status-phase-value\">{html.escape(current_phase)}</p>"
+        f"{render_status_chip(phase_state)}"
+        "</aside>"
         "</section>"
-        f"<section class=\"status-summary-grid\">{cards}</section>"
+        f"<section class=\"status-topline-grid\">{topline_cards}</section>"
+        "<section class=\"status-action-card\">"
+        "<p class=\"section-kicker\">Next Expected Action</p>"
+        f"<p class=\"status-action-value\">{html.escape(next_expected_action)}</p>"
+        "</section>"
+        f"{f'<section class=\"status-meta-grid\">{extra_cards}</section>' if extra_cards else ''}"
         "</div>"
     )
 
 
-def render_backlog_view(content: str) -> str:
+def render_backlog_view(content: str, workspace_name: str) -> str:
     tasks = parse_task_catalog(content)
     tasks_by_id = {task.identifier: task for task in tasks if task.identifier}
     refinement_index = build_refinement_index(tasks_by_id)
@@ -1378,7 +1849,7 @@ def render_backlog_view(content: str) -> str:
     board = (
         "<section class=\"backlog-column\">"
         "<header><span class=\"status-chip done\">Task Catalog</span></header>"
-        f"{render_backlog_tasks(tasks, 'catalog', refinement_index, tasks_by_id)}"
+        f"{render_backlog_tasks(tasks, 'catalog', workspace_name, refinement_index, tasks_by_id)}"
         "</section>"
     )
     return (
@@ -1416,7 +1887,7 @@ def render_board_view(content: str, workspace_name: str, iteraspec_root: Path) -
         (
             "<section class=\"backlog-column\">"
             f"<header><span class=\"status-chip {section.key}\">{section.label}</span></header>"
-            f"{render_board_items(section.items, section.key, tasks_by_id, refinement_index)}"
+            f"{render_board_items(section.items, section.key, workspace_name, tasks_by_id, refinement_index)}"
             "</section>"
         )
         for section in sections
@@ -1433,11 +1904,11 @@ def render_board_view(content: str, workspace_name: str, iteraspec_root: Path) -
     )
 
 
-def render_current_task_view(content: str) -> str:
+def render_current_task_view(content: str, workspace_name: str) -> str:
     task = parse_current_task(content)
-    acceptance = "".join(f"<li>{html.escape(item)}</li>" for item in task.acceptance) or "<li>Sin criterios detectados.</li>"
-    notes = "".join(f"<li>{html.escape(item)}</li>" for item in task.notes) or "<li>Sin notas detectadas.</li>"
-    objective = html.escape(task.objective or "Objetivo no detectado.")
+    acceptance = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.acceptance) or "<li>Sin criterios detectados.</li>"
+    notes = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.notes) or "<li>Sin notas detectadas.</li>"
+    objective = _render_inline(task.objective or "Objetivo no detectado.", workspace_name)
     identifier = html.escape(task.identifier or "Sin identificador")
     title = html.escape(task.title or "Tarea activa")
     return (
@@ -1670,6 +2141,32 @@ def parse_status_key_values(content: str) -> list[tuple[str, str]]:
     return parsed
 
 
+def render_status_chip(label: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", " ", label.lower()).strip()
+    if any(token in normalized for token in {"done", "approved", "complete", "completed"}):
+        tone = "done"
+    elif any(token in normalized for token in {"progress", "running", "active"}):
+        tone = "inprogress"
+    elif any(token in normalized for token in {"blocked", "waiting", "awaiting", "hold"}):
+        tone = "blocked"
+    else:
+        tone = "todo"
+    return f"<span class=\"status-chip {tone}\">{html.escape(label)}</span>"
+
+
+def render_status_value(label: str, value: str, active_feature: str) -> str:
+    if label == "Active Refinement":
+        workspace_name = active_feature.strip()
+        refinement_id = normalize_refinement_identifier(value)
+        if workspace_name and workspace_name != "(none)" and refinement_id:
+            return (
+                f'<a class="doc-link" href="{refinement_detail_href(workspace_name, refinement_id)}" '
+                'target="_blank" rel="noreferrer">'
+                f"{html.escape(refinement_id)}</a>"
+            )
+    return html.escape(value)
+
+
 def split_task_title(title: str) -> tuple[str, str]:
     cleaned = title.strip()
     match = re.match(r"^`?(T\d{2}|R\d{2})`?\s*[:\-]?\s*(.*)$", cleaned)
@@ -1710,6 +2207,11 @@ def normalize_task_identifier(value: str) -> str:
     return match.group(1).upper() if match else ""
 
 
+def normalize_refinement_identifier(value: str) -> str:
+    match = re.search(r"\b(R\d{2})\b", value.strip(), re.IGNORECASE)
+    return match.group(1).upper() if match else ""
+
+
 def build_refinement_index(tasks: dict[str, BacklogTask]) -> dict[str, list[str]]:
     refinement_index: dict[str, list[str]] = {}
     for identifier, task in tasks.items():
@@ -1738,6 +2240,7 @@ def read_task_catalog(workspace_name: str, iteraspec_root: Path) -> dict[str, Ba
 def render_backlog_tasks(
     tasks: list[BacklogTask],
     section_key: str,
+    workspace_name: str,
     refinement_index: dict[str, list[str]],
     tasks_by_id: dict[str, BacklogTask],
 ) -> str:
@@ -1745,8 +2248,8 @@ def render_backlog_tasks(
         return "<div class=\"empty-task-card\">Sin tareas en esta columna.</div>"
     rendered: list[str] = []
     for index, task in enumerate(tasks, start=1):
-        modal_id = task_modal_id(task.identifier or f"{section_key}-{index}")
         identifier, summary = split_task_title(task.title)
+        task_href = task_detail_href(workspace_name, identifier or task.identifier or f"{section_key}-{index}")
         code_markup = (
             f"<span class=\"task-code-chip\">{html.escape(identifier)}</span>"
             if identifier
@@ -1754,17 +2257,16 @@ def render_backlog_tasks(
         )
         rendered.append(
             "<article class=\"task-card\">"
-            f"<a class=\"task-card-button\" href=\"#{modal_id}\">"
+            f"<a class=\"task-card-button\" href=\"{task_href}\" target=\"_blank\" rel=\"noreferrer\">"
             "<div class=\"task-card-title-row\">"
             "<span class=\"task-state-dot\"></span>"
             "<div class=\"task-card-copy\">"
             f"{code_markup}"
             f"<div class=\"task-card-title\">{html.escape(summary)}</div>"
-            "<p>Ver detalle</p>"
+            "<p>Abrir tarea completa</p>"
             "</div>"
             "</div>"
             "</a>"
-            f"{render_task_modal(modal_id, task, None, refinement_index, tasks_by_id)}"
             "</article>"
         )
     return "".join(rendered)
@@ -1773,6 +2275,7 @@ def render_backlog_tasks(
 def render_board_items(
     items: list[BoardItem],
     section_key: str,
+    workspace_name: str,
     tasks_by_id: dict[str, BacklogTask],
     refinement_index: dict[str, list[str]],
 ) -> str:
@@ -1780,13 +2283,13 @@ def render_board_items(
         return "<div class=\"empty-task-card\">Sin tareas en esta columna.</div>"
     rendered: list[str] = []
     for index, item in enumerate(items, start=1):
-        modal_id = task_modal_id(item.identifier or f"{section_key}-{index}")
         task = tasks_by_id.get(item.identifier)
         summary = split_task_title(task.title)[1] if task else item.identifier
+        task_href = task_detail_href(workspace_name, item.identifier or f"{section_key}-{index}")
         note_markup = f"<p>{html.escape(item.note)}</p>" if item.note else "<p>Ver detalle</p>"
         rendered.append(
             "<article class=\"task-card\">"
-            f"<a class=\"task-card-button\" href=\"#{modal_id}\">"
+            f"<a class=\"task-card-button\" href=\"{task_href}\" target=\"_blank\" rel=\"noreferrer\">"
             "<div class=\"task-card-title-row\">"
             "<span class=\"task-state-dot\"></span>"
             "<div class=\"task-card-copy\">"
@@ -1796,72 +2299,27 @@ def render_board_items(
             "</div>"
             "</div>"
             "</a>"
-            f"{render_task_modal(modal_id, task, item, refinement_index, tasks_by_id)}"
             "</article>"
         )
     return "".join(rendered)
 
 
-def render_task_modal(
-    modal_id: str,
-    task: BacklogTask | None,
-    board_item: BoardItem | None = None,
-    refinement_index: dict[str, list[str]] | None = None,
-    tasks_by_id: dict[str, BacklogTask] | None = None,
-) -> str:
-    if task is not None:
-        identifier, summary = split_task_title(task.title)
-        detail_markup = render_task_detail(task)
-    else:
-        identifier = board_item.identifier if board_item is not None else ""
-        summary = board_item.identifier if board_item is not None else "Tarea"
-        detail_markup = "<p>No se encontró detalle en <code>backlog.md</code> para esta tarea.</p>"
-    refinement_panel = render_refinement_panel(
-        identifier,
-        task.refinement_id if task is not None else "",
-        refinement_index or {},
-        tasks_by_id or {},
-    )
-    note_panel = ""
-    if board_item is not None and board_item.note:
-        note_panel = (
-            "<article class=\"task-modal-panel\">"
-            "<h4>Nota de estado</h4>"
-            f"<p>{html.escape(board_item.note)}</p>"
-            "</article>"
-        )
-    return (
-        f"<section id=\"{modal_id}\" class=\"task-modal\">"
-        "<div class=\"task-modal-dialog\">"
-        "<header class=\"task-modal-header\">"
-        "<div>"
-        "<p class=\"section-kicker\">Detalle de tarea</p>"
-        f"{f'<span class=\"task-code-chip\">{html.escape(identifier)}</span>' if identifier else ''}"
-        f"<h3>{html.escape(summary)}</h3>"
-        "</div>"
-        "<a class=\"modal-close\" href=\"#\">Cerrar</a>"
-        "</header>"
-        "<div class=\"task-modal-body\">"
-        "<article class=\"task-modal-panel\">"
-        "<h4>Detalle</h4>"
-        f"{detail_markup}"
-        "</article>"
-        f"{refinement_panel}"
-        f"{note_panel}"
-        "</div>"
-        "</div>"
-        "</section>"
-    )
-
-
-def render_task_detail(task: BacklogTask) -> str:
-    if task.detail_lines:
-        return render_markdown("\n".join(task.detail_lines))
+def render_task_detail(task: BacklogTask, workspace_name: str = "", hide_refinement: bool = False) -> str:
+    detail_lines = task.detail_lines
+    if hide_refinement:
+        detail_lines = [
+            line
+            for line in task.detail_lines
+            if not re.match(r"^\s*-\s*(Refinement|Refinamiento)\s*:\s*`?R\d{2}`?\s*$", line, re.IGNORECASE)
+        ]
+    if detail_lines:
+        return render_markdown("\n".join(detail_lines), workspace_name)
     return "<p>Esta tarea no tiene detalle adicional en el backlog.</p>"
 
 
 def render_refinement_panel(
     task_identifier: str,
+    workspace_name: str,
     refinement_id: str,
     refinement_index: dict[str, list[str]],
     tasks_by_id: dict[str, BacklogTask],
@@ -1871,7 +2329,7 @@ def render_refinement_panel(
     sibling_ids = [identifier for identifier in refinement_index.get(refinement_id, []) if identifier != task_identifier]
     related_links = "".join(
         (
-            f"<li><a class=\"doc-link\" href=\"#{task_modal_id(identifier)}\">"
+            f"<li><a class=\"doc-link\" href=\"{task_detail_href(workspace_name, identifier)}\" target=\"_blank\" rel=\"noreferrer\">"
             f"{html.escape(identifier)} - {html.escape(split_task_title(tasks_by_id[identifier].title)[1])}"
             "</a></li>"
         )
@@ -1886,16 +2344,63 @@ def render_refinement_panel(
     return (
         "<article class=\"task-modal-panel\">"
         "<h4>Refinamiento</h4>"
-        f"<p><span class=\"task-code-chip\">{html.escape(refinement_id)}</span></p>"
+        f'<p><a class="task-code-chip" href="{refinement_detail_href(workspace_name, refinement_id)}" target="_blank" rel="noreferrer">{html.escape(refinement_id)}</a></p>'
         "<h4>Tareas relacionadas</h4>"
         f"{related_markup}"
         "</article>"
     )
 
 
-def task_modal_id(identifier: str) -> str:
-    normalized = re.sub(r"[^a-zA-Z0-9_-]+", "-", identifier.strip()) or "task"
-    return f"task-detail-{normalized}"
+def task_detail_href(workspace_name: str, identifier: str) -> str:
+    normalized = normalize_task_identifier(identifier) or identifier.strip().upper() or "task"
+    return f"/workspaces/{workspace_name}/tasks/{normalized}"
+
+
+def refinement_detail_href(workspace_name: str, refinement_id: str) -> str:
+    normalized = normalize_refinement_identifier(refinement_id) or refinement_id.strip().upper() or "R00"
+    return f"/workspaces/{workspace_name}/refinements/{normalized}"
+
+
+def find_board_item(identifier: str, workspace_name: str, iteraspec_root: Path) -> tuple[BoardItem | None, str]:
+    try:
+        loaded = read_workspace_document(workspace_name, "board.md", iteraspec_root)
+    except (InvalidDocumentRequestError, DocumentNotFoundError):
+        return None, ""
+
+    for section in order_board_sections(parse_board(loaded.content)):
+        for item in section.items:
+            if item.identifier == identifier:
+                return item, section.label
+    return None, ""
+
+
+def extract_refinement_spec_section(content: str, refinement_id: str) -> tuple[str, str]:
+    heading_match = re.search(rf"^(#+)\s+.*\b{re.escape(refinement_id)}\b.*$", content, re.MULTILINE)
+    if heading_match:
+        level = len(heading_match.group(1))
+        lines = content[heading_match.start():].splitlines()
+        collected: list[str] = []
+        for idx, line in enumerate(lines):
+            if idx > 0 and re.match(r"^#{1,%d}\s+" % level, line):
+                break
+            collected.append(line)
+        return heading_match.group(0).lstrip("# ").strip(), "\n".join(collected).strip()
+
+    lines = content.splitlines()
+    matching_indexes = [index for index, line in enumerate(lines) if refinement_id in line]
+    if not matching_indexes:
+        return "", ""
+
+    start = max(0, matching_indexes[0] - 2)
+    while start > 0 and lines[start - 1].strip():
+        start -= 1
+
+    end = min(len(lines), matching_indexes[-1] + 3)
+    while end < len(lines) and lines[end].strip():
+        end += 1
+
+    excerpt = "\n".join(lines[start:end]).strip()
+    return f"Refinamiento {refinement_id}", excerpt
 
 
 def render_task_bullets(bullets: list[str]) -> str:
@@ -2157,6 +2662,155 @@ def _read_current_task_snapshot(workspace_name: str, iteraspec_root: Path) -> di
     }
 
 
+def _render_task_page(
+    workspaces: list[IteraSpecWorkspace],
+    workspace_name: str,
+    task: BacklogTask,
+    board_item: BoardItem | None,
+    board_label: str,
+    refinement_index: dict[str, list[str]],
+    tasks_by_id: dict[str, BacklogTask],
+) -> str:
+    identifier, summary = split_task_title(task.title)
+    navigation = _render_sidebar(workspaces, workspace_name, "backlog.md")
+    detail_markup = render_task_detail(task, workspace_name, hide_refinement=True)
+    refinement_panel = render_refinement_panel(
+        identifier,
+        workspace_name,
+        task.refinement_id,
+        refinement_index,
+        tasks_by_id,
+    )
+    note_panel = (
+        "<article class=\"task-modal-panel\">"
+        "<h4>Nota de estado</h4>"
+        f"<p>{html.escape(board_item.note)}</p>"
+        "</article>"
+        if board_item is not None and board_item.note
+        else ""
+    )
+    state_panel = (
+        "<article class=\"task-modal-panel\">"
+        "<h4>Estado en board</h4>"
+        f"<p>{render_status_chip(board_label)}</p>"
+        "</article>"
+        if board_label
+        else ""
+    )
+    return f"""<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{html.escape(identifier or summary)} · IteraSpec GUI Viewer</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="reader-shell">
+      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
+      <aside class="sidebar">
+        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <p class="sidebar-kicker">Documentos</p>
+        {navigation}
+      </aside>
+      <section class="document-panel">
+        <div class="document-toolbar">
+          <label class="sidebar-toggle" for="sidebar-toggle"></label>
+        </div>
+        <header class="document-header">
+          <p class="eyebrow">Detalle de tarea</p>
+          <h1>{html.escape(summary)}</h1>
+          <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(workspace_name))}</code></p>
+          {f'<div class="task-pill">{html.escape(identifier)}</div>' if identifier else ''}
+        </header>
+        <article class="markdown-body">
+          <div class="specialized-view current-task-view">
+            <section class="task-grid">
+              {state_panel}
+              {refinement_panel}
+              {note_panel}
+            </section>
+            <section class="task-panel">
+              <h3>Detalle</h3>
+              {detail_markup}
+            </section>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>"""
+
+
+def _render_refinement_page(
+    workspaces: list[IteraSpecWorkspace],
+    workspace_name: str,
+    refinement_id: str,
+    section_title: str,
+    section_content: str,
+    related_tasks: list[BacklogTask],
+) -> str:
+    navigation = _render_sidebar(workspaces, workspace_name, "specs.md")
+    related_markup = "".join(
+        (
+            "<li>"
+            f'<a class="doc-link" href="{task_detail_href(workspace_name, task.identifier)}" target="_blank" rel="noreferrer">'
+            f"{html.escape(task.identifier)} - {html.escape(split_task_title(task.title)[1])}"
+            "</a>"
+            "</li>"
+        )
+        for task in related_tasks
+        if task.identifier
+    ) or "<li>Sin tareas asociadas detectadas.</li>"
+    return f"""<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{html.escape(refinement_id)} · IteraSpec GUI Viewer</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="reader-shell">
+      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
+      <aside class="sidebar">
+        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <p class="sidebar-kicker">Documentos</p>
+        {navigation}
+      </aside>
+      <section class="document-panel">
+        <div class="document-toolbar">
+          <label class="sidebar-toggle" for="sidebar-toggle"></label>
+        </div>
+        <header class="document-header">
+          <p class="eyebrow">Detalle de refinamiento</p>
+          <h1>{html.escape(refinement_id)}</h1>
+          <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(workspace_name))}</code></p>
+        </header>
+        <article class="markdown-body">
+          <div class="specialized-view current-task-view">
+            <section class="task-grid">
+              <article class="task-panel">
+                <h3>Resumen</h3>
+                <p>{_render_inline(section_title, workspace_name)}</p>
+              </article>
+              <article class="task-panel">
+                <h3>Tareas relacionadas</h3>
+                <ul>{related_markup}</ul>
+              </article>
+            </section>
+            <section class="task-panel">
+              <h3>Contexto en specs.md</h3>
+              {render_markdown(section_content, workspace_name)}
+            </section>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>"""
+
+
 def _render_document_page(
     workspaces: list[IteraSpecWorkspace],
     current_workspace_name: str,
@@ -2172,7 +2826,7 @@ def _render_document_page(
             current_workspace_name,
             iteraspec_root,
         )
-        or render_markdown(content)
+        or render_markdown(content, current_workspace_name)
     )
     return f"""<!doctype html>
 <html lang="es">
