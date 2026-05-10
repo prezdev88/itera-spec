@@ -219,8 +219,10 @@ IteraSpec must separate task definitions from task state tracking during plannin
 - **Refinement Association Rule:** Each task definition in `backlog.md` must explicitly declare its associated refinement identifier so the relationship between tasks and refinements remains traceable.
 - **Board Rule:** `.iteraspec/<feature_name>/board.md` must contain the operational state board only.
 - **Board Content Rule:** `board.md` must track `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, and `⚫ Blocked` using task identifiers only, plus the timestamp of the latest entry into that state and a short blocker note when a task is blocked.
+- **Exclusive State Rule:** A task identifier may appear in one and only one board section at a time. The same task must never be present simultaneously in `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, or `⚫ Blocked`.
 - **Board Scope Rule:** Refinements are grouping identifiers and must not replace tasks as the primary items tracked in `board.md`.
 - **No Detail Loss Rule:** Moving a task between states must update `board.md` and must not remove or replace the task detail already stored in `backlog.md`.
+- **Move Means Remove Then Add Rule:** When a task changes state, the AI must remove it from its previous board section before adding it to the new one.
 - **Current Task Source Rule:** `current_task.md` may be copied or summarized from `backlog.md`, but the canonical long-lived task definition remains in `backlog.md`.
 
 ## Token Efficiency Rule
@@ -282,6 +284,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
     *   `🟡 In Progress`: The single task identifier currently being implemented. Only one task may exist in this state at any time.
     *   `🟢 Done`: Task identifiers completed through relevant testing or explicit user approval.
     *   `⚫ Blocked`: Task identifiers that cannot continue due to a failure, dependency, missing decision, environment issue, or external constraint. Each blocked task entry must include a short description of the blocker.
+    *   **Exclusivity Rule:** No task identifier may appear in more than one section at the same time.
 *   **Canonical Syntax Rule:** In this phase, the AI must emit `backlog.md` and `board.md` using the canonical Markdown structures defined in `Artifact Format Rule`.
 *   **Approval Gate:** The backlog catalog and board are considered finalized only after human approval.
 *   **Goal:** Create a clear roadmap that guides development incrementally, ensuring traceability and manageability.
@@ -290,6 +293,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 This phase repeats until the backlog is empty or marked complete by the user.
 1.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
     The AI must wait for one explicit human approval before starting implementation of the first selected task in Phase 3. That single approval is also the approval to enter Phase 3. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
+    Moving a task means removing it from `🔴 To Do` and then adding it to `🟡 In Progress`; it must not remain in both sections.
 2.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
 3.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
 4.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
@@ -298,8 +302,10 @@ This phase repeats until the backlog is empty or marked complete by the user.
     The readiness report must be concise and should summarize only the implemented delta, relevant validations executed, outstanding risks if any, and the manual validation steps.
 7.  **Provide Manual Validation Steps:** Before asking for approval, the AI must explain how the human can manually test or validate the task, including the expected successful result.
 8.  **Resolve Status:** The task may move from `🟡 In Progress` to `🟢 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass. Once the human confirms the closure as `🟢 Done`, the AI must automatically continue with the next eligible `🔴 To Do` task if one exists, unless the human explicitly instructs the AI not to start the next task yet.
+    When the task moves to `🟢 Done`, it must be removed from `🟡 In Progress` in the same board update.
 9.  **Retry Rule:** If implementation or validation fails, the AI may retry the task up to 3 times. After the third failed attempt, the task must be moved to `⚫ Blocked`.
 10.  **Handle Failure or Blockers:** If the task cannot continue, fails validation 3 times, or reaches another blocking condition, move it from `🟡 In Progress` to `⚫ Blocked` and record a short description of the blocker and why the task could not be completed.
+    When the task moves to `⚫ Blocked`, it must be removed from `🟡 In Progress` in the same board update.
 11.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 3 unless the human explicitly pauses the workflow.
 
 ## Transition Rule Between Phase 2 and Phase 3
