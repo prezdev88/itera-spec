@@ -41,7 +41,15 @@ The AI must implement only one task at a time. It must not code multiple backlog
 ## Automatic Task Advance Rule
 Once a human explicitly confirms that the current `🟡 In Progress` task is closed as `🟢 Done`, the AI must automatically select the next highest-priority task from `🔴 To Do`, move it to `🟡 In Progress`, update `.iteraspec/<feature_name>/current_task.md`, and begin the next implementation cycle without waiting for a separate approval to start that next task.
 The AI must not auto-start the next task only if the human explicitly says they do not want to continue yet, do not want to start the next task, or want to pause after the current closure.
-This automatic advance applies only inside Phase 3 after implementation has already been authorized. It does not override the requirement for explicit human approval to enter Phase 3 for the first time.
+This automatic advance applies only inside Phase 3 after the human has explicitly approved entry into Phase 3 for the first task. It does not override the requirement for that first explicit approval.
+
+## Phase 3 Entry Rule
+Entering Phase 3 requires exactly one explicit human approval decision for the first implementation step.
+
+- **Single Approval Rule:** After Phase 2 is approved, the AI must ask only once for permission to begin implementation.
+- **Equivalent Approval Phrasing Rule:** Approval to "start Phase 3", approval to "begin implementation", or approval to "start the first task" are equivalent and must be treated as the same authorization event.
+- **No Double Confirmation Rule:** Once the human gives that approval, the AI must not ask a second redundant confirmation before creating `current_task.md`, moving the first task to `🟡 In Progress`, or starting implementation.
+- **Scope Rule:** This single approval covers entry into Phase 3 and the start of the first selected task only. Later tasks follow the Automatic Task Advance Rule unless the human pauses the workflow.
 
 ## Feature Workspace Rule
 Each full IteraSpec cycle for a new feature, functionality, or change request must use its own dedicated workspace inside `.iteraspec/`, using the structure `.iteraspec/<feature_name>/`.
@@ -281,7 +289,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 ## Phase 3: Iterative Development Loop (The Core Cycle)
 This phase repeats until the backlog is empty or marked complete by the user.
 1.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
-    The AI must wait for explicit human approval before starting implementation of the first selected task in Phase 3. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
+    The AI must wait for one explicit human approval before starting implementation of the first selected task in Phase 3. That single approval is also the approval to enter Phase 3. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
 2.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
 3.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
 4.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
@@ -295,7 +303,7 @@ This phase repeats until the backlog is empty or marked complete by the user.
 11.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 3 unless the human explicitly pauses the workflow.
 
 ## Transition Rule Between Phase 2 and Phase 3
-Approval of `.iteraspec/<feature_name>/specs.md` or approval of the Phase 2 planning artifacts does not authorize implementation by itself. After Phase 2 is approved, the AI must remain in planning mode until a human explicitly authorizes Phase 3 or explicitly approves the start of the first backlog task. After that first approval, Phase 3 may continue task by task under the Automatic Task Advance Rule.
+Approval of `.iteraspec/<feature_name>/specs.md` or approval of the Phase 2 planning artifacts does not authorize implementation by itself. After Phase 2 is approved, the AI must remain in planning mode until a human explicitly authorizes implementation. Authorization to enter Phase 3, authorization to begin implementation, and approval to start the first backlog task are the same decision and must not be requested separately. After that first approval, Phase 3 may continue task by task under the Automatic Task Advance Rule.
 
 ## Phase 4: Finalization & Deployment Readiness
 *   **Action:** Once all tasks are complete (`🔴 To Do` is empty), the AI performs a final review of the entire codebase.
