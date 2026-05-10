@@ -1180,9 +1180,11 @@ class BoardSection:
 class CurrentTaskView:
     title: str
     identifier: str
+    refinement: str
     objective: str
     acceptance: list[str]
     notes: list[str]
+    timeline: list[str]
 
 
 class DocumentNotFoundError(Exception):
@@ -1908,18 +1910,29 @@ def render_current_task_view(content: str, workspace_name: str) -> str:
     task = parse_current_task(content)
     acceptance = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.acceptance) or "<li>Sin criterios detectados.</li>"
     notes = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.notes) or "<li>Sin notas detectadas.</li>"
+    timeline = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.timeline) or "<li>Sin marcas temporales detectadas.</li>"
     objective = _render_inline(task.objective or "Objetivo no detectado.", workspace_name)
     identifier = html.escape(task.identifier or "Sin identificador")
     title = html.escape(task.title or "Tarea activa")
+    refinement = (
+        f'<div class="task-pill"><a class="doc-link" href="{refinement_detail_href(workspace_name, task.refinement)}" target="_blank" rel="noreferrer">{html.escape(task.refinement)}</a></div>'
+        if task.refinement and workspace_name and workspace_name != GLOBAL_WORKSPACE_NAME
+        else (f'<div class="task-pill">{html.escape(task.refinement)}</div>' if task.refinement else "")
+    )
     return (
         "<div class=\"specialized-view current-task-view\">"
         "<section class=\"focus-card\">"
         "<p class=\"section-kicker\">Tarea Activa</p>"
         f"<h2>{title}</h2>"
         f"<div class=\"task-pill\">{identifier}</div>"
+        f"{refinement}"
         f"<p class=\"focus-objective\">{objective}</p>"
         "</section>"
         "<section class=\"task-grid\">"
+        "<article class=\"task-panel\">"
+        "<h3>Trazabilidad temporal</h3>"
+        f"<ul>{timeline}</ul>"
+        "</article>"
         "<article class=\"task-panel\">"
         "<h3>Criterios de aceptación</h3>"
         f"<ul>{acceptance}</ul>"
@@ -2104,6 +2117,7 @@ def order_board_sections(sections: list[BoardSection]) -> list[BoardSection]:
 def parse_current_task(content: str) -> CurrentTaskView:
     title = first_heading(content) or "Tarea activa"
     identifier = first_value_after_heading(content, "Identificador")
+    refinement = first_value_after_heading(content, "Refinamiento")
     objective = (
         collect_section_paragraph(content, "Objetivo")
         or collect_section_paragraph(content, "Descripcion")
@@ -2116,12 +2130,15 @@ def parse_current_task(content: str) -> CurrentTaskView:
     notes = collect_section_bullets(content, "Notas de implementacion") or collect_section_bullets(
         content, "Notas de implementación"
     )
+    timeline = collect_section_bullets(content, "Trazabilidad temporal")
     return CurrentTaskView(
         title=title,
         identifier=identifier,
+        refinement=refinement,
         objective=objective,
         acceptance=acceptance,
         notes=notes,
+        timeline=timeline,
     )
 
 

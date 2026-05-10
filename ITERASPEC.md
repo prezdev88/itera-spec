@@ -77,6 +77,16 @@ IteraSpec must maintain a global status file at `.iteraspec/status.md` to make t
 - **Consistency Rule:** The information in `.iteraspec/status.md` must remain consistent with `.iteraspec/<feature_name>/specs.md`, `.iteraspec/<feature_name>/backlog.md`, `.iteraspec/<feature_name>/board.md`, and `.iteraspec/<feature_name>/current_task.md`.
 - **Minimum Contents Rule:** The file must include at least the active feature, current phase, phase state, last approved phase, active task if any, active refinement if any, and the next expected action.
 
+## Timestamp Traceability Rule
+IteraSpec must persist explicit date-and-time markers across all workflow artifacts so creation events, task transitions, and status updates are auditable.
+
+- **Format Rule:** Every timestamp must use ISO 8601 with timezone offset, for example `2026-05-10T14:32:11-03:00`.
+- **Status Update Rule:** Every update to `.iteraspec/status.md` must also update a `Last Updated At` field.
+- **Task Creation Rule:** Every task created in `.iteraspec/<feature_name>/backlog.md` must include a `Created At` field.
+- **Board Transition Rule:** Every task state entry in `.iteraspec/<feature_name>/board.md` must include the date and time of its latest transition into the current state.
+- **Current Task Rule:** `.iteraspec/<feature_name>/current_task.md` must include the timestamps that explain when the task entered active execution and when that file was last updated.
+- **Change Traceability Rule:** When a task changes state, the AI must update the relevant timestamp fields in `board.md`, `current_task.md`, and `.iteraspec/status.md` so they stay consistent.
+
 ## Phase Persistence Rule
 IteraSpec must persist the required workflow artifacts on disk before claiming that a phase has started, is in progress, or has completed.
 
@@ -119,12 +129,14 @@ Canonical `backlog.md` format:
 
 ### T01 - Short task title
 - Refinement: R01
+- Created At: 2026-05-10T14:32:11-03:00
 - Description: Detailed task description.
 - Acceptance Criteria: Observable completion condition.
 - Dependencies: None
 
 ### T02 - Next task title
 - Refinement: R01
+- Created At: 2026-05-10T14:40:03-03:00
 - Description: Detailed task description.
 - Acceptance Criteria: Observable completion condition.
 - Dependencies: T01
@@ -136,17 +148,17 @@ Canonical `board.md` format:
 # Backlog Board
 
 ## 🔴 To Do
-- T01
-- T02
+- T01: Entered To Do at 2026-05-10T14:32:11-03:00
+- T02: Entered To Do at 2026-05-10T14:40:03-03:00
 
 ## 🟡 In Progress
-- T03
+- T03: Entered In Progress at 2026-05-10T15:05:44-03:00
 
 ## 🟢 Done
-- T00
+- T00: Entered Done at 2026-05-10T13:57:18-03:00
 
 ## ⚫ Blocked
-- T04: Waiting for external credential
+- T04: Entered Blocked at 2026-05-10T15:18:02-03:00 | Waiting for external credential
 ```
 
 Canonical `current_task.md` format:
@@ -159,6 +171,10 @@ Canonical `current_task.md` format:
 
 ## Refinamiento
 - R01
+
+## Trazabilidad temporal
+- Started At: 2026-05-10T15:05:44-03:00
+- Last Updated At: 2026-05-10T15:11:09-03:00
 
 ## Objetivo
 Implement the approved backlog scope for this task only.
@@ -183,6 +199,7 @@ Canonical `.iteraspec/status.md` format:
 - Last Approved Phase: P2
 - Active Task: T03
 - Active Refinement: R01
+- Last Updated At: 2026-05-10T15:11:09-03:00
 - Next Expected Action: Implement current task and report readiness
 ```
 
@@ -190,9 +207,10 @@ Canonical `.iteraspec/status.md` format:
 IteraSpec must separate task definitions from task state tracking during planning and implementation.
 
 - **Backlog Catalog Rule:** `.iteraspec/<feature_name>/backlog.md` must contain the full catalog of task definitions. Each task must keep its identifier, title, and implementation-relevant detail in a stable place that is not deleted when the task changes status.
+- **Backlog Timestamp Rule:** Each task definition in `backlog.md` must preserve its original `Created At` value after creation. Later edits may add more traceability fields, but they must not overwrite the original creation timestamp.
 - **Refinement Association Rule:** Each task definition in `backlog.md` must explicitly declare its associated refinement identifier so the relationship between tasks and refinements remains traceable.
 - **Board Rule:** `.iteraspec/<feature_name>/board.md` must contain the operational state board only.
-- **Board Content Rule:** `board.md` must track `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, and `⚫ Blocked` using task identifiers only, plus a short blocker note when a task is blocked.
+- **Board Content Rule:** `board.md` must track `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, and `⚫ Blocked` using task identifiers only, plus the timestamp of the latest entry into that state and a short blocker note when a task is blocked.
 - **Board Scope Rule:** Refinements are grouping identifiers and must not replace tasks as the primary items tracked in `board.md`.
 - **No Detail Loss Rule:** Moving a task between states must update `board.md` and must not remove or replace the task detail already stored in `backlog.md`.
 - **Current Task Source Rule:** `current_task.md` may be copied or summarized from `backlog.md`, but the canonical long-lived task definition remains in `backlog.md`.
