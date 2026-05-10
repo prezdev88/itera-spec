@@ -31,7 +31,39 @@ STYLESHEET = """
   --accent: #0f766e;
   --accent-strong: #115e59;
   --border: rgba(31, 28, 23, 0.1);
+  --surface-soft: rgba(255, 255, 255, 0.58);
+  --surface-muted: rgba(255, 255, 255, 0.55);
+  --surface-solid: rgba(255, 255, 255, 0.78);
+  --surface-subtle: rgba(31, 28, 23, 0.04);
+  --surface-subtle-strong: rgba(31, 28, 23, 0.06);
+  --track: rgba(31, 28, 23, 0.08);
+  --table-head: rgba(15, 118, 110, 0.12);
+  --table-row: rgba(15, 118, 110, 0.04);
+  --code-bg: #1d2a2a;
+  --code-text: #eef6f4;
   --shadow: 0 24px 80px rgba(87, 64, 30, 0.16);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1618;
+  --panel: rgba(10, 19, 22, 0.82);
+  --text: #edf4f2;
+  --muted: #9cb0ab;
+  --accent: #4fd1c5;
+  --accent-strong: #92f1e6;
+  --border: rgba(157, 192, 185, 0.16);
+  --surface-soft: rgba(15, 27, 31, 0.72);
+  --surface-muted: rgba(14, 24, 29, 0.72);
+  --surface-solid: rgba(18, 31, 35, 0.9);
+  --surface-subtle: rgba(255, 255, 255, 0.05);
+  --surface-subtle-strong: rgba(255, 255, 255, 0.08);
+  --track: rgba(255, 255, 255, 0.12);
+  --table-head: rgba(79, 209, 197, 0.16);
+  --table-row: rgba(79, 209, 197, 0.06);
+  --code-bg: #081114;
+  --code-text: #dff7f2;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
 }
 
 * {
@@ -46,13 +78,35 @@ body {
   background:
     radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 28%),
     radial-gradient(circle at bottom right, rgba(180, 83, 9, 0.16), transparent 30%),
-    linear-gradient(135deg, #f8f4eb 0%, #efe4d1 100%);
+    linear-gradient(135deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 72%, #b45309 28%) 100%);
+}
+
+a {
+  color: inherit;
+}
+
+code {
+  padding: 0.12rem 0.38rem;
+  border-radius: 999px;
+  background: var(--surface-subtle);
 }
 
 .shell {
   width: min(960px, calc(100% - 32px));
   margin: 0 auto;
   padding: 48px 0 80px;
+}
+
+.shell-toolbar,
+.document-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shell-toolbar {
+  margin-bottom: 18px;
 }
 
 .hero-shell {
@@ -117,8 +171,8 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 28px;
   background:
-    linear-gradient(160deg, rgba(15, 118, 110, 0.16), rgba(255, 255, 255, 0.55)),
-    rgba(255, 251, 245, 0.72);
+    linear-gradient(160deg, rgba(15, 118, 110, 0.16), color-mix(in srgb, var(--surface-muted) 88%, transparent)),
+    var(--panel);
   box-shadow: var(--shadow);
 }
 
@@ -155,7 +209,7 @@ h1 {
   padding: 22px;
   border: 1px solid var(--border);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--surface-soft);
   box-shadow: var(--shadow);
 }
 
@@ -205,7 +259,7 @@ h1 {
 }
 
 .quick-link {
-  background: rgba(31, 28, 23, 0.06);
+  background: var(--surface-subtle-strong);
   color: var(--text);
 }
 
@@ -220,7 +274,7 @@ h1 {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(31, 28, 23, 0.04);
+  background: var(--surface-subtle);
 }
 
 .mini-status-topline {
@@ -238,7 +292,7 @@ h1 {
   width: 100%;
   height: 10px;
   border-radius: 999px;
-  background: rgba(31, 28, 23, 0.08);
+  background: var(--track);
   overflow: hidden;
 }
 
@@ -295,7 +349,7 @@ h1 {
   padding: 22px;
   border: 1px solid var(--border);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--surface-muted);
 }
 
 .workspace-card header h2 {
@@ -319,7 +373,7 @@ h1 {
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-top: 1px solid rgba(31, 28, 23, 0.08);
+  border-top: 1px solid var(--track);
 }
 
 .doc-item:first-child {
@@ -383,11 +437,49 @@ h1 {
   padding: 0.72rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface-solid);
   color: var(--text);
   cursor: pointer;
   font-weight: 700;
   box-shadow: var(--shadow);
+}
+
+.toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.theme-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-solid);
+  box-shadow: var(--shadow);
+}
+
+.theme-option {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.58rem 0.92rem;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  color: var(--text);
+}
+
+.theme-option.active {
+  background: var(--accent);
+  color: #f5fbfa;
 }
 
 .sidebar-toggle::before {
@@ -440,7 +532,7 @@ h1 {
 .sidebar-workspace + .sidebar-workspace {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid rgba(31, 28, 23, 0.08);
+  border-top: 1px solid var(--track);
 }
 
 .sidebar-workspace h2 {
@@ -472,16 +564,10 @@ h1 {
   padding: 36px 38px;
 }
 
-.document-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 16px;
-}
-
 .document-header {
   padding-bottom: 20px;
   margin-bottom: 20px;
-  border-bottom: 1px solid rgba(31, 28, 23, 0.08);
+  border-bottom: 1px solid var(--track);
 }
 
 .markdown-body {
@@ -524,8 +610,8 @@ h1 {
   overflow-x: auto;
   padding: 18px;
   border-radius: 18px;
-  background: #1d2a2a;
-  color: #eef6f4;
+  background: var(--code-bg);
+  color: var(--code-text);
 }
 
 .markdown-body .table-scroll {
@@ -537,8 +623,8 @@ h1 {
   min-width: 520px;
   border-collapse: collapse;
   border-spacing: 0;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(31, 28, 23, 0.12);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
 }
@@ -547,18 +633,18 @@ h1 {
 .markdown-table td {
   padding: 14px 16px;
   vertical-align: top;
-  border-bottom: 1px solid rgba(31, 28, 23, 0.08);
+  border-bottom: 1px solid var(--track);
 }
 
 .markdown-table th {
-  background: rgba(15, 118, 110, 0.12);
+  background: var(--table-head);
   font-weight: 700;
   text-align: left;
   white-space: nowrap;
 }
 
 .markdown-table tbody tr:nth-child(even) {
-  background: rgba(15, 118, 110, 0.04);
+  background: var(--table-row);
 }
 
 .markdown-table tbody tr:last-child td {
@@ -583,7 +669,7 @@ h1 {
   padding: 18px;
   border-radius: 20px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--surface-soft);
 }
 
 .status-summary-card {
@@ -636,7 +722,7 @@ h1 {
   border: 1px solid var(--border);
   background:
     radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 251, 245, 0.74));
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 90%, transparent), color-mix(in srgb, var(--panel) 92%, transparent));
   box-shadow: 0 18px 40px rgba(87, 64, 30, 0.08);
 }
 
@@ -664,7 +750,7 @@ h1 {
   gap: 12px;
   padding: 16px 18px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface-solid);
   border: 1px solid rgba(15, 118, 110, 0.12);
 }
 
@@ -715,7 +801,7 @@ h1 {
   padding: 18px 20px;
   border-radius: 24px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-soft);
 }
 
 .status-action-card p {
@@ -749,7 +835,7 @@ h1 {
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.54);
+  background: var(--surface-muted);
 }
 
 .status-meta-card dt {
@@ -798,7 +884,7 @@ h1 {
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  background: rgba(31, 28, 23, 0.08);
+  background: var(--surface-subtle-strong);
 }
 
 .status-chip::before {
@@ -808,7 +894,7 @@ h1 {
   border-radius: 999px;
   flex: 0 0 auto;
   background: rgba(31, 28, 23, 0.24);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .status-chip.todo {
@@ -900,7 +986,7 @@ h1 {
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--surface-soft);
   color: var(--text);
   text-decoration: none;
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
@@ -937,7 +1023,7 @@ h1 {
   width: fit-content;
   padding: 0.22rem 0.56rem;
   border-radius: 999px;
-  background: rgba(31, 28, 23, 0.08);
+  background: var(--surface-subtle-strong);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 600;
@@ -971,8 +1057,8 @@ h1 {
   overflow: auto;
   padding: 24px;
   border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 251, 245, 0.98);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
   box-shadow: 0 28px 100px rgba(17, 24, 39, 0.28);
 }
 
@@ -997,7 +1083,7 @@ h1 {
   padding: 18px;
   border-radius: 20px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-soft);
 }
 
 .task-modal-panel h4 {
@@ -1021,7 +1107,7 @@ h1 {
   min-height: 44px;
   padding: 0.72rem 1rem;
   border-radius: 999px;
-  background: rgba(31, 28, 23, 0.08);
+  background: var(--surface-subtle-strong);
   color: var(--text);
   text-decoration: none;
   font-weight: 700;
@@ -1084,8 +1170,20 @@ code {
     padding-top: 20px;
   }
 
+  .shell-toolbar,
   .document-toolbar {
     justify-content: flex-start;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-actions,
+  .theme-switcher {
+    width: 100%;
+  }
+
+  .theme-option {
+    flex: 1 1 0;
   }
 
   .sidebar {
@@ -1106,6 +1204,38 @@ code {
   }
 }
 """
+
+THEME_BOOTSTRAP_SCRIPT = """<script>
+(() => {
+  const stored = localStorage.getItem("iteraspec-theme");
+  const theme = stored === "dark" || stored === "light" ? stored : "light";
+  document.documentElement.dataset.theme = theme;
+})();
+</script>"""
+
+THEME_BEHAVIOR_SCRIPT = """<script>
+(() => {
+  const root = document.documentElement;
+  const buttons = Array.from(document.querySelectorAll("[data-theme-option]"));
+  const normalizeTheme = (value) => (value === "dark" ? "dark" : "light");
+  const applyTheme = (theme) => {
+    const normalized = normalizeTheme(theme);
+    root.dataset.theme = normalized;
+    localStorage.setItem("iteraspec-theme", normalized);
+    buttons.forEach((button) => {
+      const active = button.dataset.themeOption === normalized;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  };
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => applyTheme(button.dataset.themeOption));
+  });
+
+  applyTheme(root.dataset.theme || "light");
+})();
+</script>"""
 
 KNOWN_DOCUMENTS = ("status.md", "specs.md", "backlog.md", "board.md", "current_task.md")
 GLOBAL_WORKSPACE_NAME = "_global"
@@ -1209,16 +1339,21 @@ def create_app() -> FastAPI:
         workspace_markup = _render_workspaces(workspaces)
         dashboard_markup = _render_dashboard(workspaces, iteraspec_root)
         status_title = "Visualizador read-only"
+        theme_switcher = render_theme_switcher()
         return """<!doctype html>
 <html lang="es">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>IteraSpec GUI Viewer</title>
+    __THEME_BOOTSTRAP__
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     <main class="shell">
+      <section class="shell-toolbar">
+        <div class="toolbar-actions">__THEME_SWITCHER__</div>
+      </section>
       <section class="hero-shell">
       <section class="hero">
         <p class="eyebrow">Desarrollado con IteraSpec</p>
@@ -1250,8 +1385,9 @@ def create_app() -> FastAPI:
         <div class="workspace-grid">__WORKSPACES__</div>
       </section>
     </main>
+    __THEME_BEHAVIOR__
   </body>
-</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DASHBOARD__", dashboard_markup).replace("__STATUS__", status_title)
+</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DASHBOARD__", dashboard_markup).replace("__STATUS__", status_title).replace("__THEME_SWITCHER__", theme_switcher).replace("__THEME_BOOTSTRAP__", THEME_BOOTSTRAP_SCRIPT).replace("__THEME_BEHAVIOR__", THEME_BEHAVIOR_SCRIPT)
 
     @app.get("/api/workspaces")
     async def workspaces() -> dict[str, object]:
@@ -1489,6 +1625,15 @@ def _ensure_within_root(candidate: Path, root: Path) -> None:
         ) from exc
 
 
+def render_theme_switcher() -> str:
+    return (
+        '<div class="theme-switcher" role="group" aria-label="Selector de tema">'
+        '<button class="theme-option" type="button" data-theme-option="light" aria-pressed="false">Light</button>'
+        '<button class="theme-option" type="button" data-theme-option="dark" aria-pressed="false">Dark</button>'
+        "</div>"
+    )
+
+
 def render_markdown(markdown_text: str, workspace_name: str = "") -> str:
     lines = markdown_text.splitlines()
     parts: list[str] = []
@@ -1704,7 +1849,7 @@ def _replace_markdown_links(text: str) -> str:
     def replace(match: re.Match[str]) -> str:
         label = match.group(1)
         url = html.escape(html.unescape(match.group(2)), quote=True)
-        return f'<a href="{url}" target="_blank" rel="noreferrer">{label}</a>'
+        return f'<a href="{url}">{label}</a>'
 
     return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", replace, text)
 
@@ -1724,11 +1869,7 @@ def _replace_refinement_mentions(text: str, workspace_name: str) -> str:
     def replace_segment(segment: str) -> str:
         return re.sub(
             r"\b(R\d{2})\b",
-            lambda match: (
-                f'<a href="{refinement_detail_href(workspace_name, match.group(1))}" '
-                'target="_blank" rel="noreferrer">'
-                f"{match.group(1)}</a>"
-            ),
+            lambda match: f'<a href="{refinement_detail_href(workspace_name, match.group(1))}">{match.group(1)}</a>',
             segment,
         )
 
@@ -1915,7 +2056,7 @@ def render_current_task_view(content: str, workspace_name: str) -> str:
     identifier = html.escape(task.identifier or "Sin identificador")
     title = html.escape(task.title or "Tarea activa")
     refinement = (
-        f'<div class="task-pill"><a class="doc-link" href="{refinement_detail_href(workspace_name, task.refinement)}" target="_blank" rel="noreferrer">{html.escape(task.refinement)}</a></div>'
+        f'<div class="task-pill"><a class="doc-link" href="{refinement_detail_href(workspace_name, task.refinement)}">{html.escape(task.refinement)}</a></div>'
         if task.refinement and workspace_name and workspace_name != GLOBAL_WORKSPACE_NAME
         else (f'<div class="task-pill">{html.escape(task.refinement)}</div>' if task.refinement else "")
     )
@@ -2177,8 +2318,7 @@ def render_status_value(label: str, value: str, active_feature: str) -> str:
         refinement_id = normalize_refinement_identifier(value)
         if workspace_name and workspace_name != "(none)" and refinement_id:
             return (
-                f'<a class="doc-link" href="{refinement_detail_href(workspace_name, refinement_id)}" '
-                'target="_blank" rel="noreferrer">'
+                f'<a class="doc-link" href="{refinement_detail_href(workspace_name, refinement_id)}">'
                 f"{html.escape(refinement_id)}</a>"
             )
     return html.escape(value)
@@ -2361,7 +2501,7 @@ def render_refinement_panel(
     return (
         "<article class=\"task-modal-panel\">"
         "<h4>Refinamiento</h4>"
-        f'<p><a class="task-code-chip" href="{refinement_detail_href(workspace_name, refinement_id)}" target="_blank" rel="noreferrer">{html.escape(refinement_id)}</a></p>'
+        f'<p><a class="task-code-chip" href="{refinement_detail_href(workspace_name, refinement_id)}">{html.escape(refinement_id)}</a></p>'
         "<h4>Tareas relacionadas</h4>"
         f"{related_markup}"
         "</article>"
@@ -2690,6 +2830,7 @@ def _render_task_page(
 ) -> str:
     identifier, summary = split_task_title(task.title)
     navigation = _render_sidebar(workspaces, workspace_name, "backlog.md")
+    theme_switcher = render_theme_switcher()
     detail_markup = render_task_detail(task, workspace_name, hide_refinement=True)
     refinement_panel = render_refinement_panel(
         identifier,
@@ -2720,6 +2861,7 @@ def _render_task_page(
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{html.escape(identifier or summary)} · IteraSpec GUI Viewer</title>
+    {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
@@ -2732,6 +2874,7 @@ def _render_task_page(
       </aside>
       <section class="document-panel">
         <div class="document-toolbar">
+          <div class="toolbar-actions">{theme_switcher}</div>
           <label class="sidebar-toggle" for="sidebar-toggle"></label>
         </div>
         <header class="document-header">
@@ -2755,6 +2898,7 @@ def _render_task_page(
         </article>
       </section>
     </main>
+    {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
 
@@ -2768,10 +2912,11 @@ def _render_refinement_page(
     related_tasks: list[BacklogTask],
 ) -> str:
     navigation = _render_sidebar(workspaces, workspace_name, "specs.md")
+    theme_switcher = render_theme_switcher()
     related_markup = "".join(
         (
             "<li>"
-            f'<a class="doc-link" href="{task_detail_href(workspace_name, task.identifier)}" target="_blank" rel="noreferrer">'
+            f'<a class="doc-link" href="{task_detail_href(workspace_name, task.identifier)}">'
             f"{html.escape(task.identifier)} - {html.escape(split_task_title(task.title)[1])}"
             "</a>"
             "</li>"
@@ -2785,6 +2930,7 @@ def _render_refinement_page(
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{html.escape(refinement_id)} · IteraSpec GUI Viewer</title>
+    {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
@@ -2797,6 +2943,7 @@ def _render_refinement_page(
       </aside>
       <section class="document-panel">
         <div class="document-toolbar">
+          <div class="toolbar-actions">{theme_switcher}</div>
           <label class="sidebar-toggle" for="sidebar-toggle"></label>
         </div>
         <header class="document-header">
@@ -2824,6 +2971,7 @@ def _render_refinement_page(
         </article>
       </section>
     </main>
+    {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
 
@@ -2836,6 +2984,7 @@ def _render_document_page(
     iteraspec_root: Path,
 ) -> str:
     navigation = _render_sidebar(workspaces, current_workspace_name, current_document_name)
+    theme_switcher = render_theme_switcher()
     article = (
         render_specialized_document(
             current_document_name,
@@ -2851,6 +3000,7 @@ def _render_document_page(
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{html.escape(current_document_name)} · IteraSpec GUI Viewer</title>
+    {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
@@ -2863,6 +3013,7 @@ def _render_document_page(
       </aside>
       <section class="document-panel">
         <div class="document-toolbar">
+          <div class="toolbar-actions">{theme_switcher}</div>
           <label class="sidebar-toggle" for="sidebar-toggle"></label>
         </div>
         <header class="document-header">
@@ -2875,6 +3026,7 @@ def _render_document_page(
         </article>
       </section>
     </main>
+    {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
 
