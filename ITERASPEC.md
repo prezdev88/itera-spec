@@ -99,8 +99,9 @@ This directory is reserved for the IteraSpec interface and is outside the normal
 IteraSpec may use one or more named developer profiles stored under `.iteraspec/developers/`.
 
 - These profiles represent hireable implementation specialists available to the project owner during staffing.
-- The user may choose one or more developer profiles for a workspace.
-- If more than one developer profile is selected, the AI must designate one of them as the lead developer for implementation and may designate the rest as supporting developers.
+- The AI must assign one or more developer profiles for a workspace according to the stack, task needs, and declared developer capabilities.
+- If more than one developer profile is assigned, the AI must designate one of them as the lead developer for implementation and may designate the rest as supporting developers.
+- The human may override the proposed staffing decision, but manual staffing is optional and not the default path.
 - If the user does not know, does not care, or does not want to choose developers, the AI must assign the default senior generalist profile automatically.
 - Developer profiles are reusable assets and are not part of any single workspace.
 
@@ -129,6 +130,7 @@ Developer staffing is owned by the `Engineering Manager` in `P3`.
 
 - The `Engineering Manager` is responsible for presenting available developer profiles, capturing explicit user selections when provided, and producing `.iteraspec/<feature_name>/staffing.md`.
 - The staffing result must identify the lead developer and any supporting developers assigned to the workspace.
+- The staffing rationale must explain why those developers were auto-assigned from their declared capabilities.
 - This staffing responsibility is the purpose of `P3`.
 
 ## Delivery Role Rule
@@ -176,7 +178,7 @@ Whenever the AI is acting inside a phase, it must communicate as the role assign
 - `P1` communicates as `Product Owner`.
 - `P2` communicates as `Tech Lead`.
 - `P3` communicates as `Engineering Manager`.
-- `P4` communicates as the selected lead developer display name.
+- `P4` communicates as the assigned lead developer display name.
 - `P5` communicates as `Release Manager`.
 
 The AI must prefix major operational messages with the active role and phase using this format:
@@ -261,7 +263,7 @@ IteraSpec must keep direct traceability between the approved specification and e
 During implementation, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/current_task.md` containing the single backlog task currently being worked on for that feature. This file exists to avoid repeated full backlog reads and to make the active implementation scope explicit at all times.
 
 ## Developer Staffing Artifact Rule
-Before implementation begins, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/staffing.md` containing the selected developer roster, the lead developer assignment, and the staffing rationale for that workspace.
+Before implementation begins, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/staffing.md` containing the assigned developer roster, the lead developer assignment, and the staffing rationale for that workspace.
 
 ## Formal Delivery Rule
 When the approved implementation backlog for a feature is complete, IteraSpec must create or update `.iteraspec/<feature_name>/delivery.md` as the formal delivery artifact for that feature.
@@ -286,6 +288,7 @@ Canonical `backlog.md` format:
 ### T01 - Short task title
 - Created At: 2026-05-10T14:32:11-03:00
 - Requirement: RF01
+- Assignees: Lucas Rios
 - Description: Detailed task description.
 - Acceptance Criteria: Observable completion condition.
 - Dependencies: None
@@ -293,6 +296,7 @@ Canonical `backlog.md` format:
 ### T02 - Next task title
 - Created At: 2026-05-10T14:40:03-03:00
 - Requirement: RNF01
+- Assignees: Lucas Rios, Mateo Herrera
 - Description: Detailed task description.
 - Acceptance Criteria: Observable completion condition.
 - Dependencies: T01
@@ -325,7 +329,7 @@ Canonical `staffing.md` format:
 - Lead Developer Profile: lucas-rios-senior-generalist
 - Lead Developer Name: Lucas Rios
 - Supporting Developer Profiles: mateo-herrera-java-senior
-- Staffing Decision Source: User Selected
+- Staffing Decision Source: Auto Assigned
 - Last Updated At: 2026-05-10T14:58:09-03:00
 
 ## Staffing Rationale
@@ -347,6 +351,9 @@ Canonical `current_task.md` format:
 
 ## Requerimiento
 - RF01
+
+## Asignados
+- Lucas Rios
 
 ## Trazabilidad temporal
 - Started At: 2026-05-10T15:05:44-03:00
@@ -376,9 +383,10 @@ Canonical `.iteraspec/status.md` format:
 - Last Approved Phase: P3
 - Assigned Developer Profiles: lucas-rios-senior-generalist, mateo-herrera-java-senior
 - Lead Developer Profile: lucas-rios-senior-generalist
-- Staffing Decision Source: User Selected
+- Staffing Decision Source: Auto Assigned
 - Active Task: T03
 - Active Requirement: RF01
+- Active Assignees: Lucas Rios
 - Handoff Status: Accepted
 - Returned From Phase: None
 - Return Reason: None
@@ -456,6 +464,7 @@ IteraSpec must separate task definitions from task state tracking during plannin
 - **Backlog Catalog Rule:** `.iteraspec/<feature_name>/backlog.md` must contain the full catalog of task definitions. Each task must keep its identifier, title, and implementation-relevant detail in a stable place that is not deleted when the task changes status.
 - **Backlog Timestamp Rule:** Each task definition in `backlog.md` must preserve its original `Created At` value after creation. Later edits may add more traceability fields, but they must not overwrite the original creation timestamp.
 - **Requirement Association Rule:** Each task definition in `backlog.md` must explicitly declare its associated requirement identifier so the relationship between tasks and approved requirements remains traceable.
+- **Task Assignee Rule:** Each task definition in `backlog.md` must explicitly declare one or more assigned developers selected during staffing. A task without assignees is invalid.
 - **Board Rule:** `.iteraspec/<feature_name>/board.md` must contain the operational state board only.
 - **Board Content Rule:** `board.md` must track `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, and `⚫ Blocked` using task identifiers only, plus the timestamp of the latest entry into that state and a short blocker note when a task is blocked.
 - **Exclusive State Rule:** A task identifier may appear in one and only one board section at a time. The same task must never be present simultaneously in `🔴 To Do`, `🟡 In Progress`, `🟢 Done`, or `⚫ Blocked`.
@@ -538,10 +547,13 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 *   **Phase Owner:** `Engineering Manager`
 *   **Input:** Approved planning artifacts from `P2` and the available developer profiles under `.iteraspec/developers/`.
 *   **AI Action:** Analyze the approved work, inspect the available developer profiles, and prepare a staffing proposal in `.iteraspec/<feature_name>/staffing.md`.
-*   **Selection Rule:** The AI must allow the user to choose one or more developer profiles for the workspace.
-*   **Default Assignment Rule:** If the user does not know, does not care, or does not want to choose developers, the AI must assign the default senior generalist profile automatically.
-*   **Lead Assignment Rule:** If more than one developer profile is selected, the AI must assign exactly one lead developer for `P4` and record any additional profiles as supporting developers.
-*   **Selection Source Rule:** The staffing artifact must record whether the final staffing decision was user-selected or auto-assigned.
+*   **Capability Matching Rule:** The AI must inspect the approved work, compare it against the declared capabilities of the available developer profiles, and assign the best-fitting one or more developers automatically.
+*   **Default Assignment Rule:** If no specialist is a clear fit, the AI must assign the default senior generalist profile automatically.
+*   **Lead Assignment Rule:** If more than one developer profile is assigned, the AI must assign exactly one lead developer for `P4` and record any additional profiles as supporting developers.
+*   **Override Rule:** The human may override the proposed staffing decision, but manual profile selection is optional.
+*   **Task Assignment Rule:** During staffing, the AI must assign every backlog task to at least one staffed developer and persist those assignments in `backlog.md`.
+*   **No Unassigned Task Rule:** The AI must not request approval of staffing while any backlog task lacks at least one assigned developer.
+*   **Selection Source Rule:** The staffing artifact must record whether the final staffing decision was auto-assigned or human-overridden.
 *   **Persistence Rule:** Before asking for approval in this phase, the AI must ensure that `.iteraspec/<feature_name>/staffing.md` exists and that `.iteraspec/status.md` marks `P3` as the current phase with the correct next action.
 *   **Restriction:** No production code may be written in this phase.
 *   **Approval Gate:** The staffing proposal is finalized only after human approval.
@@ -550,7 +562,7 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 ## Phase 4: Iterative Development Loop (The Core Cycle)
 *   **Phase Owner:** `Lead Senior Developer`
 This phase repeats until the backlog is empty or marked complete by the user.
-1.  **Use Assigned Developers:** The AI must implement using the lead developer selected in `P3`, with any supporting developers treated as collaborators on the same active task. The protocol still permits only one active backlog task at a time.
+1.  **Use Assigned Developers:** The AI must implement using the lead developer assigned in `P3`, with any supporting developers treated as collaborators on the same active task. The protocol still permits only one active backlog task at a time.
 2.  **Define Testing Strategy:** Before implementing the first backend task of a feature, or whenever the testing strategy is still unclear, the lead developer must ask the human how to handle backend unit testing.
     The decision must offer at least these options when backend work is involved:
     - implement backend tasks with TDD,
@@ -559,7 +571,7 @@ This phase repeats until the backlog is empty or marked complete by the user.
 3.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
     Once Phase 3 is approved, the AI must automatically start Phase 4 with the first selected task unless the human explicitly pauses or requests staffing changes first. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
     Moving a task means removing it from `🔴 To Do` and then adding it to `🟡 In Progress`; it must not remain in both sections.
-4.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
+4.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, assigned developers, description, acceptance criteria if available, and any relevant implementation notes.
 5.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
 6.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
     If the human selected deferred backend unit tests, the AI may postpone unit test authoring for those backend tasks until the planned end-of-implementation testing stage, but it must still run all other relevant validations available for the current task.

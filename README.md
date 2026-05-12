@@ -29,9 +29,12 @@ Phase roles:
 
 Developer staffing:
 
-- In `P3`, the user may choose one or more named developer profiles from `.iteraspec/developers/`.
-- If the user does not know or does not want to choose, IteraSpec assigns the default senior generalist profile automatically.
-- If multiple developers are selected, IteraSpec designates one lead developer for `P4`.
+- In `P3`, IteraSpec assigns one or more named developer profiles automatically from `.iteraspec/developers/` according to the workspace needs and the capabilities declared in each profile.
+- If no specialist is a clear fit, IteraSpec assigns the default senior generalist profile automatically.
+- If multiple developers are assigned, IteraSpec designates one lead developer for `P4`.
+- The human may override the proposed staffing decision, but that is optional.
+- Every backlog task must be assigned to one or more staffed developers before implementation starts.
+- Those task assignees should remain visible in `backlog.md`, `current_task.md`, and `.iteraspec/status.md`.
 
 Developer profile creation:
 

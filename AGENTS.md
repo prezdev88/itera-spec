@@ -24,9 +24,12 @@ Read it completely before taking action and follow it strictly.
 
 ## Developer Staffing
 - Developer profiles live under `.iteraspec/developers/`.
-- In `P3`, allow the user to choose one or more named developer profiles for the workspace.
-- If the user does not know or does not want to choose, assign the default senior generalist profile automatically.
-- If more than one developer profile is selected, designate one lead developer for `P4`.
+- In `P3`, assign one or more named developer profiles automatically according to the workspace stack, task needs, and developer capabilities.
+- If no specialist is a clear fit, assign the default senior generalist profile automatically.
+- If more than one developer profile is assigned, designate one lead developer for `P4`.
+- The human may override the proposed staffing decision, but manual selection is optional and not the default path.
+- Every backlog task must be assigned to one or more staffed developers before `P4` begins.
+- Keep task assignees visible in `backlog.md`, `current_task.md`, and `.iteraspec/status.md` using the canonical IteraSpec formats.
 
 ## Developer Creation
 - If the user wants to create a new developer profile, follow `DEVELOPER_PROFILE_CREATION.md`.
@@ -61,7 +64,7 @@ Read it completely before taking action and follow it strictly.
 - Before `P4` implementation begins, complete `P3` staffing and persist `.iteraspec/<feature_name>/staffing.md`.
 - Before the first backend implementation task in `P4`, ask whether backend work should use TDD or whether unit tests should be deferred until the end of the approved implementation backlog.
 - Communicate in the voice of the active phase role and prefix major operational messages using `[<Role> | <Phase>]`.
-- In `P4`, communicate as the selected lead developer display name.
+- In `P4`, communicate as the assigned lead developer display name.
 - After `P4` final technical closure, and unless the human explicitly pauses, move the workflow to `P5` to prepare the formal delivery artifact.
 - Respect phase ownership: each phase has a primary artifact scope and may update shared operational files only when required by the workflow.
 - A receiving phase may reject a handoff and return the workflow to the previous phase with an explicit reason recorded in `.iteraspec/status.md`.

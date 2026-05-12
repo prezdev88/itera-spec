@@ -1009,6 +1009,16 @@ h1 {
   gap: 4px;
 }
 
+.developer-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-card-copy .developer-chip-group {
+  margin-top: 6px;
+}
+
 .task-card-title {
   margin: 0;
   font-size: 0.98rem;
@@ -1028,6 +1038,18 @@ h1 {
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+}
+
+.developer-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.24rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .task-card-copy p {
@@ -1248,9 +1270,10 @@ THEME_BEHAVIOR_SCRIPT = """<script>
 })();
 </script>"""
 
-KNOWN_DOCUMENTS = ("status.md", "specs.md", "backlog.md", "board.md", "current_task.md")
-WORKSPACE_DOCUMENT_ORDER = ("specs.md", "backlog.md", "board.md", "current_task.md")
+KNOWN_DOCUMENTS = ("status.md", "specs.md", "backlog.md", "board.md", "staffing.md", "current_task.md", "delivery.md")
+WORKSPACE_DOCUMENT_ORDER = ("specs.md", "backlog.md", "board.md", "staffing.md", "current_task.md", "delivery.md")
 GLOBAL_WORKSPACE_NAME = "_global"
+DEVELOPERS_DIRNAME = "developers"
 BACKLOG_SECTION_PATTERNS = (
     (re.compile(r"^##\s+`?🔴\s+To Do`?\s*$"), ("todo", "To Do")),
     (re.compile(r"^##\s+`?🟢\s+To Do`?\s*$"), ("todo", "To Do")),
@@ -1282,6 +1305,18 @@ class IteraSpecWorkspace:
 
 
 @dataclass(slots=True)
+class DeveloperProfile:
+    filename: str
+    relative_path: str
+    display_name: str
+    role: str
+    specialty: str
+    seniority: str
+    primary_stacks: list[str]
+    active: str
+
+
+@dataclass(slots=True)
 class IteraSpecDocumentContent:
     workspace_name: str
     document: IteraSpecDocument
@@ -1294,6 +1329,7 @@ class BacklogTask:
     identifier: str
     title: str
     requirement_id: str
+    assignees: list[str]
     bullets: list[str]
     detail_lines: list[str]
 
@@ -1323,6 +1359,7 @@ class CurrentTaskView:
     title: str
     identifier: str
     requirement: str
+    assignees: list[str]
     objective: str
     acceptance: list[str]
     notes: list[str]
@@ -1348,7 +1385,9 @@ def create_app() -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     async def home() -> str:
         workspaces = discover_workspaces(iteraspec_root)
+        developers = discover_developers(iteraspec_root)
         workspace_markup = _render_workspaces(workspaces)
+        developer_markup = _render_developers(developers)
         dashboard_markup = _render_dashboard(workspaces, iteraspec_root)
         status_title = "Visualizador read-only"
         theme_switcher = render_theme_switcher()
@@ -1396,10 +1435,17 @@ def create_app() -> FastAPI:
         </div>
         <div class="workspace-grid">__WORKSPACES__</div>
       </section>
+      <section class="inventory">
+        <div class="inventory-heading">
+          <p class="section-kicker">Staff Disponible</p>
+          <h2>Perfiles de developers detectados</h2>
+        </div>
+        <div class="workspace-grid">__DEVELOPERS__</div>
+      </section>
     </main>
     __THEME_BEHAVIOR__
   </body>
-</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DASHBOARD__", dashboard_markup).replace("__STATUS__", status_title).replace("__THEME_SWITCHER__", theme_switcher).replace("__THEME_BOOTSTRAP__", THEME_BOOTSTRAP_SCRIPT).replace("__THEME_BEHAVIOR__", THEME_BEHAVIOR_SCRIPT)
+</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DEVELOPERS__", developer_markup).replace("__DASHBOARD__", dashboard_markup).replace("__STATUS__", status_title).replace("__THEME_SWITCHER__", theme_switcher).replace("__THEME_BOOTSTRAP__", THEME_BOOTSTRAP_SCRIPT).replace("__THEME_BEHAVIOR__", THEME_BEHAVIOR_SCRIPT)
 
     @app.get("/api/workspaces")
     async def workspaces() -> dict[str, object]:
@@ -1420,6 +1466,26 @@ def create_app() -> FastAPI:
                     ],
                 }
                 for workspace in discovered
+            ],
+        }
+
+    @app.get("/api/developers")
+    async def developers() -> dict[str, object]:
+        roster = discover_developers(iteraspec_root)
+        return {
+            "developer_count": len(roster),
+            "developers": [
+                {
+                    "filename": developer.filename,
+                    "relative_path": developer.relative_path,
+                    "display_name": developer.display_name,
+                    "role": developer.role,
+                    "specialty": developer.specialty,
+                    "seniority": developer.seniority,
+                    "primary_stacks": developer.primary_stacks,
+                    "active": developer.active,
+                }
+                for developer in roster
             ],
         }
 
@@ -1509,6 +1575,18 @@ def create_app() -> FastAPI:
             related_tasks,
         )
 
+    @app.get("/developers", response_class=HTMLResponse)
+    async def developers_page() -> str:
+        workspaces = discover_workspaces(iteraspec_root)
+        developers = discover_developers(iteraspec_root)
+        return _render_developer_index_page(workspaces, developers)
+
+    @app.get("/developers/{profile_name}", response_class=HTMLResponse)
+    async def developer_profile_page(profile_name: str) -> str:
+        workspaces = discover_workspaces(iteraspec_root)
+        developer, content = read_developer_profile(profile_name, iteraspec_root)
+        return _render_developer_page(workspaces, developer, content)
+
     return app
 
 
@@ -1536,6 +1614,8 @@ def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace
     for candidate in sorted(root.iterdir(), key=lambda path: path.name):
         if not candidate.is_dir():
             continue
+        if candidate.name == DEVELOPERS_DIRNAME:
+            continue
         workspaces.append(
             IteraSpecWorkspace(
                 name=candidate.name,
@@ -1544,6 +1624,35 @@ def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace
             )
         )
     return workspaces
+
+
+def discover_developers(base_dir: Path | None = None) -> list[DeveloperProfile]:
+    root = (base_dir or Path(".iteraspec")).resolve()
+    developers_dir = _resolve_developers_dir(root)
+    if not developers_dir.exists() or not developers_dir.is_dir():
+        return []
+
+    profiles: list[DeveloperProfile] = []
+    for markdown_file in sorted(developers_dir.glob("*.md"), key=lambda path: path.name):
+        try:
+            content = markdown_file.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            continue
+        metadata = parse_status_key_values(content)
+        metadata_map = {key: value for key, value in metadata}
+        profiles.append(
+            DeveloperProfile(
+                filename=markdown_file.name,
+                relative_path=markdown_file.relative_to(root.parent).as_posix(),
+                display_name=first_heading(content) or markdown_file.stem.replace("-", " ").title(),
+                role=metadata_map.get("Role", "Developer"),
+                specialty=metadata_map.get("Specialty", metadata_map.get("Specialties", "No especificada")),
+                seniority=metadata_map.get("Seniority", "No indicada"),
+                primary_stacks=_split_profile_list_value(metadata_map.get("Primary Stacks", "")),
+                active=metadata_map.get("Active", "Unknown"),
+            )
+        )
+    return profiles
 
 
 def _discover_global_workspace(root_dir: Path) -> IteraSpecWorkspace | None:
@@ -1625,6 +1734,29 @@ def read_workspace_document(
     )
 
 
+def read_developer_profile(
+    profile_name: str,
+    base_dir: Path | None = None,
+) -> tuple[DeveloperProfile, str]:
+    _validate_name(profile_name, "developer profile")
+
+    root = (base_dir or Path(".iteraspec")).resolve()
+    developers_dir = _resolve_developers_dir(root)
+    developers = discover_developers(root)
+    developer = next((item for item in developers if item.filename == profile_name), None)
+    if developer is None:
+        raise HTTPException(status_code=404, detail=f"No existe el developer profile '{profile_name}'.")
+
+    profile_path = (developers_dir / profile_name).resolve()
+    _ensure_within_directory(profile_path, developers_dir, "La ruta solicitada queda fuera del directorio de developers.")
+    try:
+        content = profile_path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"El developer profile '{profile_name}' no está disponible actualmente.") from exc
+
+    return developer, content
+
+
 def _validate_name(value: str, label: str) -> None:
     if not value or "/" in value or "\\" in value or value in {".", ".."}:
         raise InvalidDocumentRequestError(f"El nombre de {label} solicitado no es válido.")
@@ -1637,6 +1769,27 @@ def _ensure_within_root(candidate: Path, root: Path) -> None:
         raise InvalidDocumentRequestError(
             "La ruta solicitada queda fuera de .iteraspec/."
         ) from exc
+
+
+def _ensure_within_directory(candidate: Path, directory: Path, message: str) -> None:
+    try:
+        candidate.relative_to(directory.resolve())
+    except ValueError as exc:
+        raise InvalidDocumentRequestError(message) from exc
+
+
+def _resolve_developers_dir(root: Path) -> Path:
+    embedded_dir = root / DEVELOPERS_DIRNAME
+    if embedded_dir.exists() and embedded_dir.is_dir():
+        return embedded_dir
+    repo_dir = root.parent / DEVELOPERS_DIRNAME
+    if repo_dir.exists() and repo_dir.is_dir():
+        return repo_dir
+    return embedded_dir
+
+
+def _split_profile_list_value(raw_value: str) -> list[str]:
+    return [item.strip() for item in raw_value.split(",") if item.strip() and item.strip().lower() != "none"]
 
 
 def render_theme_switcher() -> str:
@@ -2063,6 +2216,7 @@ def render_current_task_view(content: str, workspace_name: str) -> str:
     acceptance = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.acceptance) or "<li>Sin criterios detectados.</li>"
     notes = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.notes) or "<li>Sin notas detectadas.</li>"
     timeline = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in task.timeline) or "<li>Sin marcas temporales detectadas.</li>"
+    assignees = render_assignee_chips(task.assignees)
     objective = _render_inline(task.objective or "Objetivo no detectado.", workspace_name)
     identifier = html.escape(task.identifier or "Sin identificador")
     requirement = html.escape(task.requirement or "Sin requerimiento")
@@ -2094,6 +2248,10 @@ def render_current_task_view(content: str, workspace_name: str) -> str:
         f"<ul>{timeline}</ul>"
         "</article>"
         "<article class=\"task-panel\">"
+        "<h3>Desarrolladores asignados</h3>"
+        f"{assignees}"
+        "</article>"
+        "<article class=\"task-panel\">"
         "<h3>Criterios de aceptación</h3>"
         f"<ul>{acceptance}</ul>"
         "</article>"
@@ -2119,6 +2277,7 @@ def parse_task_catalog(content: str) -> list[BacklogTask]:
                 identifier=identifier,
                 title=line[4:].strip(),
                 requirement_id="",
+                assignees=[],
                 bullets=[],
                 detail_lines=[],
             )
@@ -2142,6 +2301,7 @@ def parse_task_catalog(content: str) -> list[BacklogTask]:
 
     for task in tasks:
         task.requirement_id = extract_requirement_id(task.detail_lines)
+        task.assignees = extract_assignees(task.detail_lines)
 
     if tasks:
         return tasks
@@ -2179,6 +2339,7 @@ def parse_task_catalog_table(content: str) -> list[BacklogTask]:
                 identifier=identifier,
                 title=f"{identifier} - {title}",
                 requirement_id=requirement_id,
+                assignees=[],
                 bullets=[line[2:].strip() for line in detail_lines if line.startswith("- ")],
                 detail_lines=detail_lines,
             )
@@ -2275,6 +2436,7 @@ def parse_current_task(content: str) -> CurrentTaskView:
     title = first_heading(content) or "Tarea activa"
     identifier = first_value_after_heading(content, "Identificador")
     requirement = first_value_after_heading(content, "Requerimiento") or first_value_after_heading(content, "Requirement")
+    assignees = collect_section_bullets(content, "Asignados") or collect_section_bullets(content, "Assignees")
     objective = (
         collect_section_paragraph(content, "Objetivo")
         or collect_section_paragraph(content, "Descripcion")
@@ -2292,6 +2454,7 @@ def parse_current_task(content: str) -> CurrentTaskView:
         title=title,
         identifier=identifier,
         requirement=requirement,
+        assignees=assignees,
         objective=objective,
         acceptance=acceptance,
         notes=notes,
@@ -2374,6 +2537,18 @@ def extract_requirement_id(lines: list[str]) -> str:
     return ""
 
 
+def extract_assignees(lines: list[str]) -> list[str]:
+    for raw_line in lines:
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        match = re.match(r"^(Assignees|Asignados)\s*:\s*(.+)$", line, re.IGNORECASE)
+        if not match:
+            continue
+        return [name.strip() for name in match.group(2).split(",") if name.strip() and name.strip().lower() != "none"]
+    return []
+
+
 def read_task_catalog(workspace_name: str, iteraspec_root: Path) -> dict[str, BacklogTask]:
     if not workspace_name or workspace_name == GLOBAL_WORKSPACE_NAME:
         return {}
@@ -2401,6 +2576,7 @@ def render_backlog_tasks(
     for index, task in enumerate(tasks, start=1):
         identifier, summary = split_task_title(task.title)
         task_href = task_detail_href(workspace_name, identifier or task.identifier or f"{section_key}-{index}")
+        assignee_markup = render_assignee_chips(task.assignees)
         code_markup = (
             f"<span class=\"task-code-chip\">{html.escape(identifier)}</span>"
             if identifier
@@ -2414,6 +2590,7 @@ def render_backlog_tasks(
             "<div class=\"task-card-copy\">"
             f"{code_markup}"
             f"<div class=\"task-card-title\">{html.escape(summary)}</div>"
+            f"{assignee_markup}"
             "<p>Abrir tarea completa</p>"
             "</div>"
             "</div>"
@@ -2436,6 +2613,7 @@ def render_board_items(
         task = tasks_by_id.get(item.identifier)
         summary = split_task_title(task.title)[1] if task else item.identifier
         task_href = task_detail_href(workspace_name, item.identifier or f"{section_key}-{index}")
+        assignee_markup = render_assignee_chips(task.assignees if task else [])
         note_markup = f"<p>{html.escape(item.note)}</p>" if item.note else "<p>Ver detalle</p>"
         rendered.append(
             "<article class=\"task-card\">"
@@ -2445,6 +2623,7 @@ def render_board_items(
             "<div class=\"task-card-copy\">"
             f"<span class=\"task-code-chip\">{html.escape(item.identifier)}</span>"
             f"<div class=\"task-card-title\">{html.escape(summary)}</div>"
+            f"{assignee_markup}"
             f"{note_markup}"
             "</div>"
             "</div>"
@@ -2460,6 +2639,13 @@ def render_task_detail(task: BacklogTask, workspace_name: str = "") -> str:
     return "<p>Esta tarea no tiene detalle adicional en el backlog.</p>"
 
 
+def render_assignee_chips(assignees: list[str]) -> str:
+    if not assignees:
+        return '<p class="muted">Sin desarrolladores asignados.</p>'
+    chips = "".join(f'<span class="developer-chip">{html.escape(name)}</span>' for name in assignees)
+    return f'<div class="developer-chip-group">{chips}</div>'
+
+
 def task_detail_href(workspace_name: str, identifier: str) -> str:
     normalized = normalize_task_identifier(identifier) or identifier.strip().upper() or "task"
     return f"/workspaces/{workspace_name}/tasks/{normalized}"
@@ -2468,6 +2654,10 @@ def task_detail_href(workspace_name: str, identifier: str) -> str:
 def requirement_detail_href(workspace_name: str, requirement_id: str) -> str:
     normalized = normalize_requirement_identifier(requirement_id) or requirement_id.strip().upper() or "RF00"
     return f"/workspaces/{workspace_name}/requirements/{normalized}"
+
+
+def developer_detail_href(profile_name: str) -> str:
+    return f"/developers/{profile_name}"
 
 
 def find_board_item(identifier: str, workspace_name: str, iteraspec_root: Path) -> tuple[BoardItem | None, str]:
@@ -2617,6 +2807,30 @@ def _render_workspaces(workspaces: list[IteraSpecWorkspace]) -> str:
     )
 
 
+def _render_developers(developers: list[DeveloperProfile]) -> str:
+    if not developers:
+        return (
+            "<div class=\"empty-state\">"
+            "<strong>No se detectaron developers reutilizables.</strong>"
+            "<p>Cuando existan perfiles en <code>.iteraspec/developers/</code>, aparecerán aquí.</p>"
+            "</div>"
+        )
+
+    return "".join(
+        (
+            "<article class=\"workspace-card\">"
+            f"<header><h2><a class=\"doc-link\" href=\"{developer_detail_href(developer.filename)}\">{html.escape(developer.display_name)}</a></h2>"
+            f"<p>{html.escape(developer.relative_path)}</p></header>"
+            f"<div class=\"developer-chip-group\">{''.join(f'<span class=\"developer-chip\">{html.escape(stack)}</span>' for stack in developer.primary_stacks[:4]) or '<span class=\"developer-chip\">Sin stacks declarados</span>'}</div>"
+            f"<p><strong>{html.escape(developer.role)}</strong> · {html.escape(developer.specialty)}</p>"
+            f"<p>Seniority: {html.escape(developer.seniority)} · Active: {html.escape(developer.active)}</p>"
+            f"<a class=\"primary-link\" href=\"{developer_detail_href(developer.filename)}\">Abrir perfil</a>"
+            "</article>"
+        )
+        for developer in developers
+    )
+
+
 def _render_documents(workspace_name: str, documents: list[IteraSpecDocument]) -> str:
     if not documents:
         return "<li class=\"doc-item muted\">Sin archivos Markdown detectados.</li>"
@@ -2635,6 +2849,7 @@ def _render_documents(workspace_name: str, documents: list[IteraSpecDocument]) -
 def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path) -> str:
     workspace_count = len(workspaces)
     document_count = sum(len(workspace.documents) for workspace in workspaces)
+    developer_count = len(discover_developers(iteraspec_root))
     global_workspace = next((workspace for workspace in workspaces if workspace.name == GLOBAL_WORKSPACE_NAME), None)
     active_workspace = next((workspace for workspace in workspaces if workspace.name != GLOBAL_WORKSPACE_NAME), None)
     active_name = active_workspace.name if active_workspace else "Sin workspace"
@@ -2658,6 +2873,11 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
     board_doc_name = _preferred_board_document(active_workspace)
     board_doc_label = "board" if board_doc_name == "board.md" else "backlog"
     escaped_active_name = html.escape(active_label)
+    current_task_assignees = (
+        [name.strip() for name in current_task["assignees"].split(",") if name.strip()]
+        if current_task and current_task.get("assignees")
+        else []
+    )
     current_task_markup = (
         "<article class=\"dashboard-focus-card\">"
         "<p class=\"section-kicker\">Tarea Activa</p>"
@@ -2666,6 +2886,7 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
         f'<a class="task-pill" href="{task_detail_href(active_name, current_task["identifier"])}">{html.escape(current_task["identifier"])}</a>'
         f'<a class="task-pill" href="{requirement_detail_href(active_name, current_task["requirement"])}">{html.escape(current_task["requirement"])}</a>'
         "</div>"
+        f"{render_assignee_chips(current_task_assignees)}"
         f"<p>{html.escape(current_task['objective'])}</p>"
         f"<a class=\"primary-link\" href=\"/workspaces/{active_name}/documents/current_task.md\">Abrir tarea activa</a>"
         "</article>"
@@ -2690,6 +2911,11 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
           <span class="metric-label">Documentos</span>
           <strong>{document_count}</strong>
           <p>Artefactos Markdown disponibles para visualización.</p>
+        </article>
+        <article class="metric-card">
+          <span class="metric-label">Developers</span>
+          <strong>{developer_count}</strong>
+          <p>Perfiles reutilizables detectados en <code>.iteraspec/developers/</code>.</p>
         </article>
         <article class="metric-card">
           <span class="metric-label">Workspace Activo</span>
@@ -2733,7 +2959,7 @@ def _render_backlog_bar(key: str, label: str, value: int, max_value: int) -> str
 def _render_quick_links(workspace: IteraSpecWorkspace | None) -> str:
     if workspace is None:
         return "<p class=\"muted\">No hay documentos detectados.</p>"
-    priority = ["specs.md", "board.md", "backlog.md", "current_task.md"]
+    priority = ["specs.md", "board.md", "backlog.md", "staffing.md", "current_task.md", "delivery.md"]
     available = {document.name: document for document in workspace.documents}
     links = []
     for name in priority:
@@ -2779,6 +3005,7 @@ def _read_current_task_snapshot(workspace_name: str, iteraspec_root: Path) -> di
         "title": parsed.title or "Tarea activa",
         "identifier": parsed.identifier or "Sin identificador",
         "requirement": parsed.requirement or "Sin requerimiento",
+        "assignees": ", ".join(parsed.assignees),
         "objective": parsed.objective or "Sin objetivo detectado.",
     }
 
@@ -2802,6 +3029,12 @@ def _render_task_page(
         "</article>"
         if board_item is not None and board_item.note
         else ""
+    )
+    assignee_panel = (
+        "<article class=\"task-modal-panel\">"
+        "<h4>Desarrolladores asignados</h4>"
+        f"{render_assignee_chips(task.assignees)}"
+        "</article>"
     )
     state_panel = (
         "<article class=\"task-modal-panel\">"
@@ -2855,6 +3088,7 @@ def _render_task_page(
             <section class="task-grid">
               {state_panel}
               {requirement_panel}
+              {assignee_panel}
               {note_panel}
             </section>
             <section class="task-panel">
@@ -2998,10 +3232,120 @@ def _render_document_page(
 </html>"""
 
 
+def _render_developer_index_page(
+    workspaces: list[IteraSpecWorkspace],
+    developers: list[DeveloperProfile],
+) -> str:
+    navigation = _render_sidebar(workspaces, "", "", "")
+    theme_switcher = render_theme_switcher()
+    developer_markup = _render_developers(developers)
+    return f"""<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Developer Staff · IteraSpec GUI Viewer</title>
+    {THEME_BOOTSTRAP_SCRIPT}
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="reader-shell">
+      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
+      <aside class="sidebar">
+        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <p class="sidebar-kicker">Documentos</p>
+        {navigation}
+      </aside>
+      <section class="document-panel">
+        <div class="document-toolbar">
+          <div class="toolbar-actions">{theme_switcher}</div>
+          <label class="sidebar-toggle" for="sidebar-toggle"></label>
+        </div>
+        <header class="document-header">
+          <p class="eyebrow">Developer Staff</p>
+          <h1>Perfiles reutilizables</h1>
+          <p class="lede">Catálogo detectado en <code>.iteraspec/developers/</code>.</p>
+        </header>
+        <section class="workspace-grid">
+          {developer_markup}
+        </section>
+      </section>
+    </main>
+    {THEME_BEHAVIOR_SCRIPT}
+  </body>
+</html>"""
+
+
+def _render_developer_page(
+    workspaces: list[IteraSpecWorkspace],
+    developer: DeveloperProfile,
+    content: str,
+) -> str:
+    navigation = _render_sidebar(workspaces, "", "", developer.filename)
+    theme_switcher = render_theme_switcher()
+    stacks = render_assignee_chips(developer.primary_stacks) if developer.primary_stacks else '<p class="muted">Sin stacks declarados.</p>'
+    article = render_markdown(content)
+    return f"""<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{html.escape(developer.display_name)} · IteraSpec GUI Viewer</title>
+    {THEME_BOOTSTRAP_SCRIPT}
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="reader-shell">
+      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
+      <aside class="sidebar">
+        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <p class="sidebar-kicker">Documentos</p>
+        {navigation}
+      </aside>
+      <section class="document-panel">
+        <div class="document-toolbar">
+          <div class="toolbar-actions">{theme_switcher}</div>
+          <label class="sidebar-toggle" for="sidebar-toggle"></label>
+        </div>
+        <header class="document-header">
+          <p class="eyebrow">Developer Profile</p>
+          <h1>{html.escape(developer.display_name)}</h1>
+          <p class="lede">{html.escape(developer.role)} · {html.escape(developer.specialty)}</p>
+          <div class="task-pill-group">
+            <div class="task-pill">{html.escape(developer.seniority)}</div>
+            <div class="task-pill">{html.escape(developer.active)}</div>
+          </div>
+        </header>
+        <article class="markdown-body">
+          <div class="specialized-view current-task-view">
+            <section class="task-grid">
+              <article class="task-panel">
+                <h3>Stacks principales</h3>
+                {stacks}
+              </article>
+              <article class="task-panel">
+                <h3>Archivo fuente</h3>
+                <p><code>{html.escape(developer.relative_path)}</code></p>
+              </article>
+            </section>
+            <section class="task-panel">
+              <h3>Perfil completo</h3>
+              {article}
+            </section>
+          </div>
+        </article>
+      </section>
+    </main>
+    {THEME_BEHAVIOR_SCRIPT}
+  </body>
+</html>"""
+
+
 def _render_sidebar(
     workspaces: list[IteraSpecWorkspace],
     current_workspace_name: str,
     current_document_name: str,
+    current_developer_name: str = "",
 ) -> str:
     sections: list[str] = []
     for workspace in workspaces:
@@ -3019,6 +3363,21 @@ def _render_sidebar(
             f"<ul>{''.join(items) if items else '<li class=\"muted\">Sin documentos.</li>'}</ul>"
             "</section>"
         )
+    developers = discover_developers(resolve_iteraspec_root())
+    developer_items = []
+    for developer in developers:
+        classes = ["sidebar-doc"]
+        if developer.filename == current_developer_name:
+            classes.append("active")
+        developer_items.append(
+            f"<li><a class=\"{' '.join(classes)}\" href=\"{developer_detail_href(developer.filename)}\">{html.escape(developer.display_name)}</a></li>"
+        )
+    sections.append(
+        "<section class=\"sidebar-workspace\">"
+        "<h2>Developers</h2>"
+        f"<ul><li><a class=\"sidebar-doc{' active' if not current_workspace_name and not current_document_name and not current_developer_name else ''}\" href=\"/developers\">staff</a></li>{''.join(developer_items) if developer_items else '<li class=\"muted\">Sin developers.</li>'}</ul>"
+        "</section>"
+    )
     return "".join(sections)
 
 
