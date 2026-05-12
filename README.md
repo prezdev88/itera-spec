@@ -1,17 +1,27 @@
 # IteraSpec
 
-IteraSpec is a protocol for building software with AI while keeping human approval at every phase and executing one implementation task at a time.
+Install it first:
 
-## What It Includes
+```bash
+./install.sh /path/to/target-project
+```
 
-- `ITERASPEC.md`: the full protocol and canonical rules.
-- `AGENTS.md`: local instructions for agents working in this repository.
-- `DEVELOPER_PROFILE_CREATION.md`: the flow for creating reusable developer profiles.
-- `gui/`: the IteraSpec artifact viewer.
+If the target path does not exist, `install.sh` creates it and installs IteraSpec there.
 
-## How To Use It
+Minimum installation:
 
-Give your assistant one of these instructions:
+- `ITERASPEC.md`
+- `AGENTS.md`
+
+If you want the full repository tooling, also keep:
+
+- `DEVELOPER_PROFILE_CREATION.md`
+- `gui/`
+- reusable developer profiles under `.iteraspec/developers/` or `developers/`
+
+## Quick Start
+
+After installation, give your assistant one of these instructions:
 
 ```text
 Sigue estrictamente `ITERASPEC.md` como protocolo principal de este proyecto. Léelo completo antes de actuar y obedécelo literalmente.
@@ -27,20 +37,16 @@ Then:
 2. Every phase and every task closure requires human approval.
 3. You can approve with `A`, `a`, or any explicit approval message.
 
-## Installation
+## What It Is
 
-You can install IteraSpec into any target path with:
+IteraSpec is a protocol for building software with AI while keeping human approval at every phase and executing one implementation task at a time.
 
-```bash
-./install.sh /path/to/target-project
-```
+## What It Includes
 
-If the target path does not exist, `install.sh` creates it and installs IteraSpec there.
-
-The minimum installation is:
-
-- `ITERASPEC.md`
-- `AGENTS.md`
+- `ITERASPEC.md`: the full protocol and canonical rules.
+- `AGENTS.md`: local instructions for agents working in this repository.
+- `DEVELOPER_PROFILE_CREATION.md`: the flow for creating reusable developer profiles.
+- `gui/`: the IteraSpec artifact viewer.
 
 ## Phases
 
