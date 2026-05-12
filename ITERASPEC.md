@@ -10,8 +10,8 @@ This also applies to task completion: passing tests or reaching an apparently co
 
 Exception:
 
-- `P3` does not require a separate phase-level approval gate after final technical closure if every implementation task has already been human-approved and the human has not explicitly paused the workflow.
-- In that case, the AI may transition automatically from `P3` to `P4`, where the final formal human approval is requested against `.iteraspec/<feature_name>/delivery.md`.
+- `P4` does not require a separate phase-level approval gate after final technical closure if every implementation task has already been human-approved and the human has not explicitly paused the workflow.
+- In that case, the AI may transition automatically from `P4` to `P5`, where the final formal human approval is requested against `.iteraspec/<feature_name>/delivery.md`.
 
 ## Approval Input Rule
 When IteraSpec requests a human approval decision, the human may answer with full words or with a short single-letter response.
@@ -46,39 +46,63 @@ The AI must implement only one task at a time. It must not code multiple backlog
 ## Automatic Task Advance Rule
 Once a human explicitly confirms that the current `🟡 In Progress` task is closed as `🟢 Done`, the AI must automatically select the next highest-priority task from `🔴 To Do`, move it to `🟡 In Progress`, update `.iteraspec/<feature_name>/current_task.md`, and begin the next implementation cycle without waiting for a separate approval to start that next task.
 The AI must not auto-start the next task only if the human explicitly says they do not want to continue yet, do not want to start the next task, or want to pause after the current closure.
-This automatic advance applies inside Phase 3, including the first task immediately after Phase 2 approval unless the human explicitly pauses or requests backlog changes first.
+This automatic advance applies inside Phase 4, including the first task immediately after Phase 3 approval unless the human explicitly pauses or requests staffing changes first.
 
 ## Phase 3 Entry Rule
-Entering Phase 3 does not require a separate approval after Phase 2 approval unless the human explicitly pauses the workflow or asks for planning changes before implementation starts.
+Entering Phase 3 does not require a separate approval after Phase 2 approval unless the human explicitly pauses the workflow or asks for planning changes before staffing starts.
 
-- **Phase 2 Approval Carries Forward Rule:** Human approval of Phase 2 planning artifacts authorizes the AI to enter Phase 3 immediately and start the first selected task.
-- **No Extra Entry Confirmation Rule:** After Phase 2 is approved, the AI must not ask a separate question such as whether it may enter Phase 3, begin implementation, or start the first task.
-- **Pause Exception Rule:** The AI must not start implementation automatically only if the human explicitly says to pause, wait, or revise the planning artifacts before coding begins.
-- **Scope Rule:** Approval of Phase 2 covers entry into Phase 3 and the start of the first selected task only. Later tasks follow the Automatic Task Advance Rule unless the human pauses the workflow.
+- **Phase 2 Approval Carries Forward Rule:** Human approval of Phase 2 planning artifacts authorizes the AI to enter Phase 3 immediately and start staffing.
+- **No Extra Entry Confirmation Rule:** After Phase 2 is approved, the AI must not ask a separate question such as whether it may enter Phase 3 or start developer selection.
+- **Pause Exception Rule:** The AI must not start staffing automatically only if the human explicitly says to pause, wait, or revise the planning artifacts before staffing begins.
+- **Scope Rule:** Approval of Phase 2 covers entry into Phase 3 and the start of staffing only.
 
-## Feature Workspace Rule
-Each full IteraSpec cycle for a new feature, functionality, or change request must use its own dedicated workspace inside `.iteraspec/`, using the structure `.iteraspec/<feature_name>/`.
-The `<feature_name>` should be a short, human-readable, filesystem-safe identifier that clearly represents the feature or functionality being developed.
+## Phase 4 Entry Rule
+Entering Phase 4 does not require a separate approval after Phase 3 approval unless the human explicitly pauses the workflow or asks for staffing changes before implementation starts.
+
+- **Phase 3 Approval Carries Forward Rule:** Human approval of Phase 3 staffing artifacts authorizes the AI to enter Phase 4 immediately and start the first selected task.
+- **No Extra Entry Confirmation Rule:** After Phase 3 is approved, the AI must not ask a separate question such as whether it may enter Phase 4, begin implementation, or start the first task.
+- **Pause Exception Rule:** The AI must not start implementation automatically only if the human explicitly says to pause, wait, or revise the staffing decision before coding begins.
+- **Scope Rule:** Approval of Phase 3 covers entry into Phase 4 and the start of the first selected task only. Later tasks follow the Automatic Task Advance Rule unless the human pauses the workflow.
+
+## Workspace Rule
+Each full IteraSpec cycle for a new feature, functionality, fix, or change request must use its own dedicated workspace inside `.iteraspec/`, using the structure `.iteraspec/<workspace_name>/`.
+The `<workspace_name>` should be a short, human-readable, filesystem-safe identifier that clearly represents the work being developed.
 
 Example:
 
 ```text
 .iteraspec/
+  developers/
+    lucas-rios-senior-generalist.md
+    mateo-herrera-java-senior.md
   user-authentication/
     specs.md
     backlog.md
     board.md
+    staffing.md
     current_task.md
+    delivery.md
   billing-export/
     specs.md
     backlog.md
     board.md
+    staffing.md
     current_task.md
+    delivery.md
 ```
 
 ## GUI Protection Rule
 If a `gui/` directory exists at the root of the project, the AI must treat it as the IteraSpec GUI and must not modify, move, rename, delete, or repurpose it as part of the feature or application being developed.
 This directory is reserved for the IteraSpec interface and is outside the normal implementation scope of the target project unless the human explicitly requests changes to that `gui/` directory.
+
+## Developer Profiles Rule
+IteraSpec may use one or more named developer profiles stored under `.iteraspec/developers/`.
+
+- These profiles represent hireable implementation specialists available to the project owner during staffing.
+- The user may choose one or more developer profiles for a workspace.
+- If more than one developer profile is selected, the AI must designate one of them as the lead developer for implementation and may designate the rest as supporting developers.
+- If the user does not know, does not care, or does not want to choose developers, the AI must assign the default senior generalist profile automatically.
+- Developer profiles are reusable assets and are not part of any single workspace.
 
 ## Phase Role Rule
 Each phase in IteraSpec has a primary project role responsible for the quality and acceptance of that phase.
@@ -86,17 +110,25 @@ Each phase in IteraSpec has a primary project role responsible for the quality a
 - `P0` is owned by the `Discovery Lead`.
 - `P1` is owned by the `Product Owner`.
 - `P2` is owned by the `Tech Lead`.
-- `P3` is owned by the `Senior Developer`.
-- `P4` is owned by the `Release Manager`.
+- `P3` is owned by the `Engineering Manager`.
+- `P4` is owned by the `Lead Senior Developer`.
+- `P5` is owned by the `Release Manager`.
 
 These role names define the decision lens that the AI must apply in each phase. They are process roles, not necessarily real people.
 
-## Delivery Role Rule
-Formal delivery closure is owned by the `Release Manager` in `P4`.
+## Staffing Rule
+Developer staffing is owned by the `Engineering Manager` in `P3`.
 
-- The `Senior Developer` remains responsible for implementation, technical review, and readiness reporting.
+- The `Engineering Manager` is responsible for presenting available developer profiles, capturing explicit user selections when provided, and producing `.iteraspec/<feature_name>/staffing.md`.
+- The staffing result must identify the lead developer and any supporting developers assigned to the workspace.
+- This staffing responsibility is the purpose of `P3`.
+
+## Delivery Role Rule
+Formal delivery closure is owned by the `Release Manager` in `P5`.
+
+- The `Lead Senior Developer` remains responsible for implementation, technical review, and readiness reporting in `P4`.
 - The `Release Manager` is responsible for packaging the final delivery summary, validation evidence, operational instructions, and final scope closure inside `.iteraspec/<feature_name>/delivery.md`.
-- This delivery responsibility is the purpose of `P4`.
+- This delivery responsibility is the purpose of `P5`.
 
 ## Phase Ownership Rule
 Each phase owner has a primary write scope and must avoid changing artifacts owned by another phase unless the protocol explicitly requires a shared operational update.
@@ -104,13 +136,14 @@ Each phase owner has a primary write scope and must avoid changing artifacts own
 - `P0` / `Discovery Lead`: owns the initialization context in `.iteraspec/status.md`.
 - `P1` / `Product Owner`: owns `.iteraspec/<feature_name>/specs.md`.
 - `P2` / `Tech Lead`: owns `.iteraspec/<feature_name>/backlog.md`.
-- `P3` / `Senior Developer`: owns `.iteraspec/<feature_name>/current_task.md`, production code, and final implementation review artifacts.
-- `P4` / `Release Manager`: owns `.iteraspec/<feature_name>/delivery.md`.
+- `P3` / `Engineering Manager`: owns `.iteraspec/<feature_name>/staffing.md`.
+- `P4` / `Lead Senior Developer`: owns `.iteraspec/<feature_name>/current_task.md`, production code, and final implementation review artifacts.
+- `P5` / `Release Manager`: owns `.iteraspec/<feature_name>/delivery.md`.
 
 Shared operational artifacts:
 
 - `.iteraspec/status.md` may be updated by any active phase to reflect the current global workflow state.
-- `.iteraspec/<feature_name>/board.md` may be updated by `P2` and `P3` when task state must change.
+- `.iteraspec/<feature_name>/board.md` may be updated by `P2` and `P4` when task state must change.
 
 Ownership means primary responsibility, not absolute file isolation. Shared operational artifacts may be updated only when required by the active phase workflow.
 
@@ -134,8 +167,9 @@ Whenever the AI is acting inside a phase, it must communicate as the role assign
 - `P0` communicates as `Discovery Lead`.
 - `P1` communicates as `Product Owner`.
 - `P2` communicates as `Tech Lead`.
-- `P3` communicates as `Senior Developer`.
-- `P4` communicates as `Release Manager`.
+- `P3` communicates as `Engineering Manager`.
+- `P4` communicates as the selected lead developer display name.
+- `P5` communicates as `Release Manager`.
 
 The AI must prefix major operational messages with the active role and phase using this format:
 
@@ -145,8 +179,9 @@ Examples:
 
 - `[Discovery Lead | P0] I need to confirm the target users and expected deliverables before formalizing the scope.`
 - `[Tech Lead | P2] The backlog is ready for approval.`
-- `[Senior Developer | P3] I need to confirm the backend testing strategy before implementing the first API task.`
-- `[Release Manager | P4] I am preparing the formal delivery package for final approval.`
+- `[Engineering Manager | P3] I have two suitable developers to propose for this workspace.`
+- `[Lucas Rios | P4] I need to confirm the backend testing strategy before implementing the first API task.`
+- `[Release Manager | P5] I am preparing the formal delivery package for final approval.`
 
 Major operational messages include at least:
 
@@ -166,8 +201,8 @@ IteraSpec must maintain a global status file at `.iteraspec/status.md` to make t
 - **Purpose Rule:** This file is the primary global checkpoint for understanding the current IteraSpec progress in the repository.
 - **Multi-Feature Rule:** The file must identify the active feature and summarize the state of any other feature workspaces that are in progress, paused, blocked, or awaiting approval.
 - **Update Rule:** The AI must update `.iteraspec/status.md` whenever a phase starts, a phase is approved, a task starts, a task is approved as done, a task becomes blocked, the workflow is paused, or the active feature changes.
-- **Consistency Rule:** The information in `.iteraspec/status.md` must remain consistent with `.iteraspec/<feature_name>/specs.md`, `.iteraspec/<feature_name>/backlog.md`, `.iteraspec/<feature_name>/board.md`, and `.iteraspec/<feature_name>/current_task.md`.
-- **Minimum Contents Rule:** The file must include at least the active feature, current phase, phase state, last approved phase, active task if any, active requirement if any, and the next expected action.
+- **Consistency Rule:** The information in `.iteraspec/status.md` must remain consistent with `.iteraspec/<feature_name>/specs.md`, `.iteraspec/<feature_name>/backlog.md`, `.iteraspec/<feature_name>/board.md`, `.iteraspec/<feature_name>/staffing.md`, `.iteraspec/<feature_name>/current_task.md`, and `.iteraspec/<feature_name>/delivery.md` when those artifacts exist.
+- **Minimum Contents Rule:** The file must include at least the active feature, current phase, phase state, last approved phase, active task if any, active requirement if any, the assigned developer profiles once staffing exists, and the next expected action.
 
 ## Timestamp Traceability Rule
 IteraSpec must persist explicit date-and-time markers across all workflow artifacts so creation events, task transitions, and status updates are auditable.
@@ -175,6 +210,7 @@ IteraSpec must persist explicit date-and-time markers across all workflow artifa
 - **Format Rule:** Every timestamp must use ISO 8601 with timezone offset, for example `2026-05-10T14:32:11-03:00`.
 - **Status Update Rule:** Every update to `.iteraspec/status.md` must also update a `Last Updated At` field.
 - **Task Creation Rule:** Every task created in `.iteraspec/<feature_name>/backlog.md` must include a `Created At` field.
+- **Staffing Update Rule:** Every update to `.iteraspec/<feature_name>/staffing.md` must also update a `Last Updated At` field.
 - **Board Transition Rule:** Every task state entry in `.iteraspec/<feature_name>/board.md` must include the date and time of its latest transition into the current state.
 - **Current Task Rule:** `.iteraspec/<feature_name>/current_task.md` must include the timestamps that explain when the task entered active execution and when that file was last updated.
 - **Change Traceability Rule:** When a task changes state, the AI must update the relevant timestamp fields in `board.md`, `current_task.md`, and `.iteraspec/status.md` so they stay consistent.
@@ -182,21 +218,22 @@ IteraSpec must persist explicit date-and-time markers across all workflow artifa
 ## Phase Persistence Rule
 IteraSpec must persist the required workflow artifacts on disk before claiming that a phase has started, is in progress, or has completed.
 
-- **No Invisible Progress Rule:** The AI must not claim to be in `P1`, `P2`, `P3`, or `P4` if the required files for that phase have not been created or updated on disk.
+- **No Invisible Progress Rule:** The AI must not claim to be in `P1`, `P2`, `P3`, `P4`, or `P5` if the required files for that phase have not been created or updated on disk.
 - **P0 Persistence Rule:** During `P0`, the AI must record the current context and expected next step in `.iteraspec/status.md` before claiming that initialization is in progress or complete.
 - **P1 Persistence Rule:** The AI must not claim to have entered or completed `P1` unless `.iteraspec/<feature_name>/specs.md` exists and `.iteraspec/status.md` reflects that `P1` is active or approved.
 - **P2 Persistence Rule:** The AI must not claim to have entered or completed `P2` unless `.iteraspec/<feature_name>/backlog.md` and `.iteraspec/<feature_name>/board.md` exist and `.iteraspec/status.md` reflects that `P2` is active or approved.
-- **P3 Persistence Rule:** The AI must not claim to have entered or continued `P3` unless `.iteraspec/<feature_name>/current_task.md` exists for the active task and `.iteraspec/status.md` reflects that `P3` is active.
-- **P4 Persistence Rule:** The AI must not claim to have entered or completed `P4` unless `.iteraspec/<feature_name>/delivery.md` exists and `.iteraspec/status.md` reflects that `P4` is active or approved.
+- **P3 Persistence Rule:** The AI must not claim to have entered or completed `P3` unless `.iteraspec/<feature_name>/staffing.md` exists and `.iteraspec/status.md` reflects that `P3` is active or approved.
+- **P4 Persistence Rule:** The AI must not claim to have entered or continued `P4` unless `.iteraspec/<feature_name>/current_task.md` exists for the active task and `.iteraspec/status.md` reflects that `P4` is active.
+- **P5 Persistence Rule:** The AI must not claim to have entered or completed `P5` unless `.iteraspec/<feature_name>/delivery.md` exists and `.iteraspec/status.md` reflects that `P5` is active or approved.
 - **Approval Before Advance Rule:** Before requesting approval to advance from one phase to the next, the AI must first persist the corresponding artifacts and status updates for the current phase.
 
 ## Markdown Location Rule
-Any Markdown file created by IteraSpec as part of the workflow must be stored inside the feature workspace for that cycle, inside `.iteraspec/<feature_name>/`. This includes specification files, backlog files, review notes, status reports, and any other Markdown artifacts generated by the protocol.
+Any Markdown file created by IteraSpec as part of the workflow must be stored inside the workspace for that cycle, inside `.iteraspec/<feature_name>/`, except for reusable developer profiles that belong under `.iteraspec/developers/`. This includes specification files, backlog files, staffing files, review notes, status reports, delivery files, and any other Markdown artifacts generated by the protocol.
 
 ## Identifier Convention Rule
 IteraSpec must use a fixed minimal identifier convention for phases, requirements, and tasks in every feature workspace.
 
-- **Phases:** The protocol phases must be referenced as `P0`, `P1`, `P2`, `P3`, and `P4`.
+- **Phases:** The protocol phases must be referenced as `P0`, `P1`, `P2`, `P3`, `P4`, and `P5`.
 - **Functional Requirements:** Functional requirements in `specs.md` must use the format `RFNN`, starting at `RF01` and increasing sequentially.
 - **Non-Functional Requirements:** Non-functional requirements in `specs.md` must use the format `RNFNN`, starting at `RNF01` and increasing sequentially.
 - **Tasks:** Backlog tasks must use the format `TNN`, starting at `T01` and increasing sequentially (`T02`, `T03`, etc.). Task identifiers must always use two digits to preserve visual ordering and consistency.
@@ -215,18 +252,21 @@ IteraSpec must keep direct traceability between the approved specification and e
 ## Active Task File Rule
 During implementation, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/current_task.md` containing the single backlog task currently being worked on for that feature. This file exists to avoid repeated full backlog reads and to make the active implementation scope explicit at all times.
 
+## Developer Staffing Artifact Rule
+Before implementation begins, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/staffing.md` containing the selected developer roster, the lead developer assignment, and the staffing rationale for that workspace.
+
 ## Formal Delivery Rule
 When the approved implementation backlog for a feature is complete, IteraSpec must create or update `.iteraspec/<feature_name>/delivery.md` as the formal delivery artifact for that feature.
 
 - `delivery.md` is the canonical final handoff summary for the completed feature.
-- The artifact must be prepared by the `Release Manager` role in `P4`.
+- The artifact must be prepared by the `Release Manager` role in `P5`.
 - The artifact must summarize what was delivered, which requirements were covered, what validations were executed, how to run or verify the result, and which limitations or deferred items remain if any.
-- Final human approval of the feature should be requested in `P4` against `delivery.md` together with the completed implementation state.
+- Final human approval of the feature should be requested in `P5` against `delivery.md` together with the completed implementation state.
 
 ## Artifact Format Rule
 IteraSpec must use stable Markdown structures for the workflow artifacts that the GUI reads. Semantic intent alone is not enough. If the structure varies arbitrarily, the GUI may not be able to render the artifact.
 
-- **Canonical Format Rule:** The AI must treat the formats below as the canonical output for `status.md`, `backlog.md`, `board.md`, and `current_task.md`.
+- **Canonical Format Rule:** The AI must treat the formats below as the canonical output for `status.md`, `backlog.md`, `board.md`, `staffing.md`, `current_task.md`, and `delivery.md`.
 - **GUI Compatibility Rule:** If the AI chooses another representation, it must preserve equivalent parseable markers for the GUI. Freeform tables or prose must not replace the canonical format unless the GUI explicitly supports them.
 - **Heading Stability Rule:** The AI must not rename the required headings in a way that removes their meaning or parseability.
 
@@ -269,6 +309,26 @@ Canonical `board.md` format:
 - T04: Entered Blocked at 2026-05-10T15:18:02-03:00 | Waiting for external credential
 ```
 
+Canonical `staffing.md` format:
+
+```md
+# Developer Staffing
+
+- Lead Developer Profile: lucas-rios-senior-generalist
+- Lead Developer Name: Lucas Rios
+- Supporting Developer Profiles: mateo-herrera-java-senior
+- Staffing Decision Source: User Selected
+- Last Updated At: 2026-05-10T14:58:09-03:00
+
+## Staffing Rationale
+- Lucas Rios will coordinate the implementation and handle cross-stack work.
+- Mateo Herrera will support Java backend implementation.
+
+## Scope Ownership
+- Lucas Rios: implementation lead, integration decisions, shared task coordination.
+- Mateo Herrera: Java backend implementation and backend unit test support.
+```
+
 Canonical `current_task.md` format:
 
 ```md
@@ -302,10 +362,13 @@ Canonical `.iteraspec/status.md` format:
 # IteraSpec Status
 
 - Active Feature: user-authentication
-- Current Phase: P3
-- Active Role: Senior Developer
+- Current Phase: P4
+- Active Role: Lucas Rios
 - Phase State: In Progress
-- Last Approved Phase: P2
+- Last Approved Phase: P3
+- Assigned Developer Profiles: lucas-rios-senior-generalist, mateo-herrera-java-senior
+- Lead Developer Profile: lucas-rios-senior-generalist
+- Staffing Decision Source: User Selected
 - Active Task: T03
 - Active Requirement: RF01
 - Handoff Status: Accepted
@@ -349,6 +412,36 @@ Canonical `.iteraspec/<feature_name>/delivery.md` format:
 - None
 ```
 
+Canonical `.iteraspec/developers/<profile_id>.md` format:
+
+```md
+# Lucas Rios
+
+- Profile ID: lucas-rios-senior-generalist
+- Role: Senior Developer
+- Specialty: Generalist
+- Seniority: Senior
+- Primary Stacks: TypeScript, React, Node.js, Java, Python, SQL
+- Architecture Style: Pragmatic modular architecture
+- Preferred Work: Cross-stack implementation, refactoring, integration work, testing
+- Preferred Testing Style: Adaptable between TDD and deferred unit tests
+- Collaboration Style: Leads mixed-scope work and coordinates supporting developers clearly
+- Source Skills: None
+- Lead Eligible: true
+- Active: true
+
+## Strengths
+- Rapid adaptation across multiple stacks.
+- Strong implementation coordination on mixed backend/frontend tasks.
+
+## Common Risks
+- May choose broad pragmatic solutions over stack-specific optimizations.
+
+## When To Assign
+- Mixed-scope implementation work.
+- The user does not want to choose a specialist manually.
+```
+
 ## Backlog Separation Rule
 IteraSpec must separate task definitions from task state tracking during planning and implementation.
 
@@ -367,7 +460,7 @@ IteraSpec must minimize token usage across all phases without reducing correctne
 
 - **Context Minimization Rule:** The AI must not repeatedly restate full approved specifications, full backlogs, or previously accepted analysis unless a human explicitly asks for a full restatement or a major change requires rebuilding that context.
 - **Reference Instead of Repeat Rule:** After a document has been created and approved, the AI should reference it by file path, identifier, section, task code, or short summary instead of reproducing its contents.
-- **Current Task First Rule:** During Phase 3, the AI must use `.iteraspec/<feature_name>/current_task.md` as the primary working context and must avoid rereading or reprinting the entire backlog unless reprioritization, re-planning, or blocker analysis requires it.
+- **Current Task First Rule:** During Phase 4, the AI must use `.iteraspec/<feature_name>/current_task.md` as the primary working context and must avoid rereading or reprinting the entire backlog unless reprioritization, re-planning, or blocker analysis requires it.
 - **Board First Rule:** When the AI only needs to know task order or state, it should read `board.md` before reading the full task catalog in `backlog.md`.
 - **Delta Reporting Rule:** Status updates and readiness reports should describe only what changed since the previous approved or reported state, plus any information needed for validation or decision-making.
 - **Concise Status Rule:** Routine progress updates should remain brief and focused. The AI should avoid long narrative recaps when a short operational summary is enough.
@@ -433,48 +526,65 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 *   **Approval Gate:** The backlog catalog and board are considered finalized only after human approval.
 *   **Goal:** Create a clear roadmap that guides development incrementally, ensuring traceability and manageability.
 
-## Phase 3: Iterative Development Loop (The Core Cycle)
-*   **Phase Owner:** `Senior Developer`
+## Phase 3: Developer Staffing
+*   **Phase Owner:** `Engineering Manager`
+*   **Input:** Approved planning artifacts from `P2` and the available developer profiles under `.iteraspec/developers/`.
+*   **AI Action:** Analyze the approved work, inspect the available developer profiles, and prepare a staffing proposal in `.iteraspec/<feature_name>/staffing.md`.
+*   **Selection Rule:** The AI must allow the user to choose one or more developer profiles for the workspace.
+*   **Default Assignment Rule:** If the user does not know, does not care, or does not want to choose developers, the AI must assign the default senior generalist profile automatically.
+*   **Lead Assignment Rule:** If more than one developer profile is selected, the AI must assign exactly one lead developer for `P4` and record any additional profiles as supporting developers.
+*   **Selection Source Rule:** The staffing artifact must record whether the final staffing decision was user-selected or auto-assigned.
+*   **Persistence Rule:** Before asking for approval in this phase, the AI must ensure that `.iteraspec/<feature_name>/staffing.md` exists and that `.iteraspec/status.md` marks `P3` as the current phase with the correct next action.
+*   **Restriction:** No production code may be written in this phase.
+*   **Approval Gate:** The staffing proposal is finalized only after human approval.
+*   **Goal:** Assign the right named developers to the workspace before implementation begins.
+
+## Phase 4: Iterative Development Loop (The Core Cycle)
+*   **Phase Owner:** `Lead Senior Developer`
 This phase repeats until the backlog is empty or marked complete by the user.
-1.  **Define Testing Strategy:** Before implementing the first backend task of a feature, or whenever the testing strategy is still unclear, the `Senior Developer` must ask the human how to handle backend unit testing.
+1.  **Use Assigned Developers:** The AI must implement using the lead developer selected in `P3`, with any supporting developers treated as collaborators on the same active task. The protocol still permits only one active backlog task at a time.
+2.  **Define Testing Strategy:** Before implementing the first backend task of a feature, or whenever the testing strategy is still unclear, the lead developer must ask the human how to handle backend unit testing.
     The decision must offer at least these options when backend work is involved:
     - implement backend tasks with TDD,
     - defer unit test authoring until all approved implementation tasks are completed.
     If the selected strategy requires backlog or sequencing changes that are not represented in the approved planning artifacts, the AI must return the workflow to `P2` before implementation continues.
-2.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
-    Once Phase 2 is approved, the AI must automatically start Phase 3 with the first selected task unless the human explicitly pauses or requests planning changes first. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
+3.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
+    Once Phase 3 is approved, the AI must automatically start Phase 4 with the first selected task unless the human explicitly pauses or requests staffing changes first. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
     Moving a task means removing it from `🔴 To Do` and then adding it to `🟡 In Progress`; it must not remain in both sections.
-3.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
-4.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
-5.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
+4.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
+5.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
+6.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
     If the human selected deferred backend unit tests, the AI may postpone unit test authoring for those backend tasks until the planned end-of-implementation testing stage, but it must still run all other relevant validations available for the current task.
-6.  **Refactor & Review:** Review the code against the original specifications and improve structure/readability. This internal review responsibility is part of the `Senior Developer` role and replaces the need for a separate QA phase.
-7.  **Report Readiness:** If the task satisfies the relevant tests or appears implementation-complete, the AI must report that the current task appears ready.
+7.  **Refactor & Review:** Review the code against the original specifications and improve structure/readability. This internal review responsibility is part of the lead developer role.
+8.  **Report Readiness:** If the task satisfies the relevant tests or appears implementation-complete, the AI must report that the current task appears ready.
     The readiness report must be concise and should summarize only the implemented delta, relevant validations executed, outstanding risks if any, and the manual validation steps.
-8.  **Provide Manual Validation Steps:** Before asking for approval, the AI must explain how the human can manually test or validate the task, including the expected successful result.
-9.  **Resolve Status:** The task may move from `🟡 In Progress` to `🟢 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass. Once the human confirms the closure as `🟢 Done`, the AI must automatically continue with the next eligible `🔴 To Do` task if one exists, unless the human explicitly instructs the AI not to start the next task yet.
+9.  **Provide Manual Validation Steps:** Before asking for approval, the AI must explain how the human can manually test or validate the task, including the expected successful result.
+10.  **Resolve Status:** The task may move from `🟡 In Progress` to `🟢 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass. Once the human confirms the closure as `🟢 Done`, the AI must automatically continue with the next eligible `🔴 To Do` task if one exists, unless the human explicitly instructs the AI not to start the next task yet.
     When the task moves to `🟢 Done`, it must be removed from `🟡 In Progress` in the same board update.
-    If the `Senior Developer` determines that the active task cannot be implemented as currently planned because the task is ambiguous, oversized, untraceable, or missing upstream decisions, the AI must reject the handoff back to `P2`, record the reason in `.iteraspec/status.md`, and request backlog correction instead of silently redefining scope during implementation.
-10.  **Retry Rule:** If implementation or validation fails, the AI may retry the task up to 3 times. After the third failed attempt, the task must be moved to `⚫ Blocked`.
-11.  **Handle Failure or Blockers:** If the task cannot continue, fails validation 3 times, or reaches another blocking condition, move it from `🟡 In Progress` to `⚫ Blocked` and record a short description of the blocker and why the task could not be completed.
+    If the lead developer determines that the active task cannot be implemented as currently planned because the task is ambiguous, oversized, untraceable, or missing upstream decisions, the AI must reject the handoff back to `P2`, record the reason in `.iteraspec/status.md`, and request backlog correction instead of silently redefining scope during implementation.
+11.  **Retry Rule:** If implementation or validation fails, the AI may retry the task up to 3 times. After the third failed attempt, the task must be moved to `⚫ Blocked`.
+12.  **Handle Failure or Blockers:** If the task cannot continue, fails validation 3 times, or reaches another blocking condition, move it from `🟡 In Progress` to `⚫ Blocked` and record a short description of the blocker and why the task could not be completed.
     When the task moves to `⚫ Blocked`, it must be removed from `🟡 In Progress` in the same board update.
-12.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 3 unless the human explicitly pauses the workflow.
-13.  **Final Technical Closure Rule:** Once the backlog has no remaining implementation work, the `Senior Developer` must perform the final implementation review, complete any deferred unit test work approved by the human, and update the necessary technical documentation.
-14.  **Phase Exit Rule:** After final technical closure, `P3` is complete and the workflow must move to `P4`.
-15.  **Acceptance Lens:** The `Senior Developer` must verify that the implementation matches the active task only, preserves existing approved behavior, includes the relevant validation evidence, and leaves the system in a coherent final state when the backlog is complete.
+13.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 4 unless the human explicitly pauses the workflow.
+14.  **Final Technical Closure Rule:** Once the backlog has no remaining implementation work, the lead developer must perform the final implementation review, complete any deferred unit test work approved by the human, and update the necessary technical documentation.
+15.  **Phase Exit Rule:** After final technical closure, `P4` is complete and the workflow must move to `P5`.
+16.  **Acceptance Lens:** The lead developer must verify that the implementation matches the active task only, preserves existing approved behavior, includes the relevant validation evidence, and leaves the system in a coherent final state when the backlog is complete.
 
 ## Transition Rule Between Phase 2 and Phase 3
-Approval of `.iteraspec/<feature_name>/specs.md` alone does not authorize implementation, but approval of the Phase 2 planning artifacts does. After Phase 2 is approved, the AI must enter Phase 3 automatically, move the first selected task to `🟡 In Progress`, create `current_task.md`, and begin implementation without requesting an extra authorization step. The AI must not do this only if the human explicitly pauses the workflow or requests backlog changes before coding starts. After that, Phase 3 may continue task by task under the Automatic Task Advance Rule.
+Approval of Phase 2 planning artifacts authorizes entry into `P3` staffing. After Phase 2 is approved, the AI must enter Phase 3 automatically and begin staffing without requesting an extra authorization step. The AI must not do this only if the human explicitly pauses the workflow or requests planning changes before staffing starts.
 
 ## Transition Rule Between Phase 3 and Phase 4
-Once the implementation backlog is complete and `P3` final technical closure is done, the AI must enter `P4` automatically unless the human explicitly pauses the workflow.
+Once the staffing proposal is approved, the AI must enter `P4` automatically, move the first selected task to `🟡 In Progress`, create `current_task.md`, and begin implementation without requesting an extra authorization step. The AI must not do this only if the human explicitly pauses the workflow or requests staffing changes before coding starts.
 
-## Phase 4: Formal Delivery
+## Transition Rule Between Phase 4 and Phase 5
+Once the implementation backlog is complete and `P4` final technical closure is done, the AI must enter `P5` automatically unless the human explicitly pauses the workflow.
+
+## Phase 5: Formal Delivery
 *   **Phase Owner:** `Release Manager`
-*   **Input:** Completed implementation state from `P3`.
+*   **Input:** Completed implementation state from `P4`.
 *   **Action:** Create or update `.iteraspec/<feature_name>/delivery.md` as the formal delivery artifact for final human approval.
 *   **Contents Rule:** The delivery artifact must include at least delivered scope, covered requirements, validation evidence, run or verification instructions, and known limitations or deferred items if any.
-*   **Restriction:** No new feature code may be written in this phase. Only final delivery packaging, documentation alignment, and formal closure updates are allowed unless the human explicitly sends the workflow back to `P3`.
-*   **Return Rule:** If the `Release Manager` detects missing delivery evidence, incomplete scope closure, or unresolved technical readiness issues, the AI must reject the handoff back to `P3`, record the reason in `.iteraspec/status.md`, and request corrective work before final approval.
+*   **Restriction:** No new feature code may be written in this phase. Only final delivery packaging, documentation alignment, and formal closure updates are allowed unless the human explicitly sends the workflow back to `P4`.
+*   **Return Rule:** If the `Release Manager` detects missing delivery evidence, incomplete scope closure, or unresolved technical readiness issues, the AI must reject the handoff back to `P4`, record the reason in `.iteraspec/status.md`, and request corrective work before final approval.
 *   **Approval Gate:** The protocol is complete only when a human explicitly approves `.iteraspec/<feature_name>/delivery.md`.
 *   **Acceptance Lens:** The `Release Manager` must verify that the final delivery is understandable, traceable, and ready for final human approval.

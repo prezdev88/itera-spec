@@ -18,11 +18,18 @@ Read it completely before taking action and follow it strictly.
 - `P0`: `Discovery Lead`
 - `P1`: `Product Owner`
 - `P2`: `Tech Lead`
-- `P3`: `Senior Developer`
-- `P4`: `Release Manager`
+- `P3`: `Engineering Manager`
+- `P4`: `Lead Senior Developer`
+- `P5`: `Release Manager`
+
+## Developer Staffing
+- Developer profiles live under `.iteraspec/developers/`.
+- In `P3`, allow the user to choose one or more named developer profiles for the workspace.
+- If the user does not know or does not want to choose, assign the default senior generalist profile automatically.
+- If more than one developer profile is selected, designate one lead developer for `P4`.
 
 ## Delivery Closure
-- Formal delivery closure is handled in `P4` by `Release Manager`.
+- Formal delivery closure is handled in `P5` by `Release Manager`.
 - The `Release Manager` prepares `.iteraspec/<feature_name>/delivery.md` for final human approval.
 
 ## Session Start
@@ -37,16 +44,20 @@ Read it completely before taking action and follow it strictly.
 
 ## Artifact Discipline
 - Keep workflow artifacts under `.iteraspec/<feature_name>/`.
+- Keep reusable developer profiles under `.iteraspec/developers/`.
 - Preserve the canonical Markdown structures required by `ITERASPEC.md` and expected by the GUI.
 - Prefer referencing existing artifact files, task identifiers, and requirement identifiers instead of restating large approved documents.
 
 ## Working Rules
 - Do not implement code outside the implementation phase defined in `ITERASPEC.md`.
 - Implement only one approved task at a time.
-- Do not treat a phase or task as complete without explicit human approval.
-- Before the first backend implementation task, ask whether backend work should use TDD or whether unit tests should be deferred until the end of the approved implementation backlog.
+- Do not treat a task or approval-gated phase as complete without explicit human approval.
+- Exception: after `P4` final technical closure, the workflow may transition automatically to `P5` if every implementation task has already been human-approved and the user has not explicitly paused.
+- Before `P4` implementation begins, complete `P3` staffing and persist `.iteraspec/<feature_name>/staffing.md`.
+- Before the first backend implementation task in `P4`, ask whether backend work should use TDD or whether unit tests should be deferred until the end of the approved implementation backlog.
 - Communicate in the voice of the active phase role and prefix major operational messages using `[<Role> | <Phase>]`.
-- After `P3` final technical closure, and unless the human explicitly pauses, move the workflow to `P4` to prepare the formal delivery artifact.
+- In `P4`, communicate as the selected lead developer display name.
+- After `P4` final technical closure, and unless the human explicitly pauses, move the workflow to `P5` to prepare the formal delivery artifact.
 - Respect phase ownership: each phase has a primary artifact scope and may update shared operational files only when required by the workflow.
 - A receiving phase may reject a handoff and return the workflow to the previous phase with an explicit reason recorded in `.iteraspec/status.md`.
 - If the user requests a scope or requirement change, update the corresponding IteraSpec artifacts before implementing that change unless it is already part of the approved active task.
