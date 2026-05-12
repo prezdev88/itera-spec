@@ -9,6 +9,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_AGENTS_FILE="${SCRIPT_DIR}/AGENTS.md"
+SOURCE_DEVELOPER_CREATION_FILE="${SCRIPT_DIR}/DEVELOPER_PROFILE_CREATION.md"
 SOURCE_PROTOCOL_FILE="${SCRIPT_DIR}/ITERASPEC.md"
 SOURCE_DEVELOPERS_DIR="${SCRIPT_DIR}/developers"
 SOURCE_GUI_DIR="${SCRIPT_DIR}/gui"
@@ -19,6 +20,11 @@ TARGET_GUI_DIR="${TARGET_ROOT}/.gui"
 
 if [ ! -f "${SOURCE_AGENTS_FILE}" ]; then
   printf 'No se encontró el archivo fuente: %s\n' "${SOURCE_AGENTS_FILE}" >&2
+  exit 1
+fi
+
+if [ ! -f "${SOURCE_DEVELOPER_CREATION_FILE}" ]; then
+  printf 'No se encontró el archivo fuente: %s\n' "${SOURCE_DEVELOPER_CREATION_FILE}" >&2
   exit 1
 fi
 
@@ -52,6 +58,7 @@ mkdir -p "${TARGET_DEVELOPERS_DIR}"
 mkdir -p "${TARGET_GUI_DIR}"
 
 cp "${SOURCE_AGENTS_FILE}" "${TARGET_ROOT}/AGENTS.md"
+cp "${SOURCE_DEVELOPER_CREATION_FILE}" "${TARGET_ROOT}/DEVELOPER_PROFILE_CREATION.md"
 cp "${SOURCE_PROTOCOL_FILE}" "${TARGET_ROOT}/ITERASPEC.md"
 cp "${SOURCE_DEVELOPERS_DIR}"/*.md "${TARGET_DEVELOPERS_DIR}/"
 cp "${SOURCE_GUI_DIR}/app.py" "${TARGET_GUI_DIR}/app.py"
@@ -60,6 +67,7 @@ cp "${SOURCE_GUI_DIR}/requirements.txt" "${TARGET_GUI_DIR}/requirements.txt"
 
 printf 'IteraSpec instalado en:\n'
 printf '  %s\n' "${TARGET_ROOT}/AGENTS.md"
+printf '  %s\n' "${TARGET_ROOT}/DEVELOPER_PROFILE_CREATION.md"
 printf '  %s\n' "${TARGET_ROOT}/ITERASPEC.md"
 printf '  %s\n' "${TARGET_DEVELOPERS_DIR}"
 printf '  %s\n' "${TARGET_GUI_DIR}"

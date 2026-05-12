@@ -28,6 +28,11 @@ Read it completely before taking action and follow it strictly.
 - If the user does not know or does not want to choose, assign the default senior generalist profile automatically.
 - If more than one developer profile is selected, designate one lead developer for `P4`.
 
+## Developer Creation
+- If the user wants to create a new developer profile, follow `DEVELOPER_PROFILE_CREATION.md`.
+- Keep asking targeted questions until the profile has enough information to be reusable in staffing decisions.
+- Write approved developer profiles under `.iteraspec/developers/`.
+
 ## Delivery Closure
 - Formal delivery closure is handled in `P5` by `Release Manager`.
 - The `Release Manager` prepares `.iteraspec/<feature_name>/delivery.md` for final human approval.

@@ -104,6 +104,14 @@ IteraSpec may use one or more named developer profiles stored under `.iteraspec/
 - If the user does not know, does not care, or does not want to choose developers, the AI must assign the default senior generalist profile automatically.
 - Developer profiles are reusable assets and are not part of any single workspace.
 
+## Developer Profile Creation Rule
+IteraSpec may also create new reusable developer profiles.
+
+- If the user requests a new developer profile, the AI must follow `DEVELOPER_PROFILE_CREATION.md`.
+- The AI must keep asking focused questions until the profile is specific enough to be reusable during staffing.
+- New profiles must be written under `.iteraspec/developers/` and must follow the canonical developer profile format defined in this protocol.
+- New profiles should be confirmed by the user before they are treated as active reusable staff.
+
 ## Phase Role Rule
 Each phase in IteraSpec has a primary project role responsible for the quality and acceptance of that phase.
 

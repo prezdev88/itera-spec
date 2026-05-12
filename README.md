@@ -33,6 +33,11 @@ Developer staffing:
 - If the user does not know or does not want to choose, IteraSpec assigns the default senior generalist profile automatically.
 - If multiple developers are selected, IteraSpec designates one lead developer for `P4`.
 
+Developer profile creation:
+
+- IteraSpec can also create new developer profiles through a guided question flow.
+- The detailed creation protocol lives in `DEVELOPER_PROFILE_CREATION.md`.
+
 Formal delivery closure:
 
 - `P5` is the formal delivery phase handled by `Release Manager`.
@@ -61,6 +66,7 @@ IteraSpec should also maintain a global file at `.iteraspec/status.md`. On a new
 If you want to reuse IteraSpec in another repository, copy at minimum:
 
 - `AGENTS.md`
+- `DEVELOPER_PROFILE_CREATION.md`
 - `ITERASPEC.md`
 - `developers/`
 
@@ -75,6 +81,7 @@ Expected structure in the target project:
 ```text
 your-project/
   AGENTS.md
+  DEVELOPER_PROFILE_CREATION.md
   ITERASPEC.md
   .iteraspec/
     developers/
