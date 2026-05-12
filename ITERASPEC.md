@@ -8,6 +8,11 @@ This protocol defines a repeatable, structured workflow for an Artificial Intell
 Every phase in this protocol is considered complete only when a human explicitly approves its output. The AI may prepare, refine, and propose deliverables autonomously, but it must not consider a phase closed without human validation.
 This also applies to task completion: passing tests or reaching an apparently complete implementation is not sufficient to mark a task as finished without explicit human confirmation.
 
+Exception:
+
+- `P3` does not require a separate phase-level approval gate after final technical closure if every implementation task has already been human-approved and the human has not explicitly paused the workflow.
+- In that case, the AI may transition automatically from `P3` to `P4`, where the final formal human approval is requested against `.iteraspec/<feature_name>/delivery.md`.
+
 ## Approval Input Rule
 When IteraSpec requests a human approval decision, the human may answer with full words or with a short single-letter response.
 
@@ -75,6 +80,85 @@ Example:
 If a `gui/` directory exists at the root of the project, the AI must treat it as the IteraSpec GUI and must not modify, move, rename, delete, or repurpose it as part of the feature or application being developed.
 This directory is reserved for the IteraSpec interface and is outside the normal implementation scope of the target project unless the human explicitly requests changes to that `gui/` directory.
 
+## Phase Role Rule
+Each phase in IteraSpec has a primary project role responsible for the quality and acceptance of that phase.
+
+- `P0` is owned by the `Discovery Lead`.
+- `P1` is owned by the `Product Owner`.
+- `P2` is owned by the `Tech Lead`.
+- `P3` is owned by the `Senior Developer`.
+- `P4` is owned by the `Release Manager`.
+
+These role names define the decision lens that the AI must apply in each phase. They are process roles, not necessarily real people.
+
+## Delivery Role Rule
+Formal delivery closure is owned by the `Release Manager` in `P4`.
+
+- The `Senior Developer` remains responsible for implementation, technical review, and readiness reporting.
+- The `Release Manager` is responsible for packaging the final delivery summary, validation evidence, operational instructions, and final scope closure inside `.iteraspec/<feature_name>/delivery.md`.
+- This delivery responsibility is the purpose of `P4`.
+
+## Phase Ownership Rule
+Each phase owner has a primary write scope and must avoid changing artifacts owned by another phase unless the protocol explicitly requires a shared operational update.
+
+- `P0` / `Discovery Lead`: owns the initialization context in `.iteraspec/status.md`.
+- `P1` / `Product Owner`: owns `.iteraspec/<feature_name>/specs.md`.
+- `P2` / `Tech Lead`: owns `.iteraspec/<feature_name>/backlog.md`.
+- `P3` / `Senior Developer`: owns `.iteraspec/<feature_name>/current_task.md`, production code, and final implementation review artifacts.
+- `P4` / `Release Manager`: owns `.iteraspec/<feature_name>/delivery.md`.
+
+Shared operational artifacts:
+
+- `.iteraspec/status.md` may be updated by any active phase to reflect the current global workflow state.
+- `.iteraspec/<feature_name>/board.md` may be updated by `P2` and `P3` when task state must change.
+
+Ownership means primary responsibility, not absolute file isolation. Shared operational artifacts may be updated only when required by the active phase workflow.
+
+## Phase Handoff Rule
+Every phase transition is a structured handoff from one phase owner to the next.
+
+- The receiving phase owner may accept the handoff and continue.
+- The receiving phase owner may reject the handoff if the incoming artifact or state does not satisfy the minimum conditions required for that phase.
+- A rejection must return the workflow to the previous phase and must include a concrete reason and the required correction.
+
+## Phase Rejection Rule
+If a phase owner rejects the incoming handoff, the AI must update `.iteraspec/status.md` to record the rejection and return target before continuing.
+
+- The workflow must move back to the immediately previous phase unless the human explicitly requests another destination.
+- The rejecting phase must explain what is wrong, why the work is not acceptable, and what must be corrected before resubmission.
+- A rejection is a process decision, not a silent rewrite. The AI must not hide the rejection by directly patching upstream artifacts without recording it.
+
+## Role Voice Rule
+Whenever the AI is acting inside a phase, it must communicate as the role assigned to that phase.
+
+- `P0` communicates as `Discovery Lead`.
+- `P1` communicates as `Product Owner`.
+- `P2` communicates as `Tech Lead`.
+- `P3` communicates as `Senior Developer`.
+- `P4` communicates as `Release Manager`.
+
+The AI must prefix major operational messages with the active role and phase using this format:
+
+`[<Role> | <Phase>] Message`
+
+Examples:
+
+- `[Discovery Lead | P0] I need to confirm the target users and expected deliverables before formalizing the scope.`
+- `[Tech Lead | P2] The backlog is ready for approval.`
+- `[Senior Developer | P3] I need to confirm the backend testing strategy before implementing the first API task.`
+- `[Release Manager | P4] I am preparing the formal delivery package for final approval.`
+
+Major operational messages include at least:
+
+- phase starts,
+- phase handoffs,
+- approval requests,
+- rejection or return decisions,
+- readiness reports,
+- blocker reports.
+
+The role voice must remain professional, concise, and operational. It must not become theatrical, fictional, or overly conversational.
+
 ## Global Status Rule
 IteraSpec must maintain a global status file at `.iteraspec/status.md` to make the workflow resumable across sessions and across multiple features.
 
@@ -103,6 +187,7 @@ IteraSpec must persist the required workflow artifacts on disk before claiming t
 - **P1 Persistence Rule:** The AI must not claim to have entered or completed `P1` unless `.iteraspec/<feature_name>/specs.md` exists and `.iteraspec/status.md` reflects that `P1` is active or approved.
 - **P2 Persistence Rule:** The AI must not claim to have entered or completed `P2` unless `.iteraspec/<feature_name>/backlog.md` and `.iteraspec/<feature_name>/board.md` exist and `.iteraspec/status.md` reflects that `P2` is active or approved.
 - **P3 Persistence Rule:** The AI must not claim to have entered or continued `P3` unless `.iteraspec/<feature_name>/current_task.md` exists for the active task and `.iteraspec/status.md` reflects that `P3` is active.
+- **P4 Persistence Rule:** The AI must not claim to have entered or completed `P4` unless `.iteraspec/<feature_name>/delivery.md` exists and `.iteraspec/status.md` reflects that `P4` is active or approved.
 - **Approval Before Advance Rule:** Before requesting approval to advance from one phase to the next, the AI must first persist the corresponding artifacts and status updates for the current phase.
 
 ## Markdown Location Rule
@@ -129,6 +214,14 @@ IteraSpec must keep direct traceability between the approved specification and e
 
 ## Active Task File Rule
 During implementation, the AI must maintain a dedicated file at `.iteraspec/<feature_name>/current_task.md` containing the single backlog task currently being worked on for that feature. This file exists to avoid repeated full backlog reads and to make the active implementation scope explicit at all times.
+
+## Formal Delivery Rule
+When the approved implementation backlog for a feature is complete, IteraSpec must create or update `.iteraspec/<feature_name>/delivery.md` as the formal delivery artifact for that feature.
+
+- `delivery.md` is the canonical final handoff summary for the completed feature.
+- The artifact must be prepared by the `Release Manager` role in `P4`.
+- The artifact must summarize what was delivered, which requirements were covered, what validations were executed, how to run or verify the result, and which limitations or deferred items remain if any.
+- Final human approval of the feature should be requested in `P4` against `delivery.md` together with the completed implementation state.
 
 ## Artifact Format Rule
 IteraSpec must use stable Markdown structures for the workflow artifacts that the GUI reads. Semantic intent alone is not enough. If the structure varies arbitrarily, the GUI may not be able to render the artifact.
@@ -210,12 +303,50 @@ Canonical `.iteraspec/status.md` format:
 
 - Active Feature: user-authentication
 - Current Phase: P3
+- Active Role: Senior Developer
 - Phase State: In Progress
 - Last Approved Phase: P2
 - Active Task: T03
 - Active Requirement: RF01
+- Handoff Status: Accepted
+- Returned From Phase: None
+- Return Reason: None
 - Last Updated At: 2026-05-10T15:11:09-03:00
 - Next Expected Action: Implement current task and report readiness
+```
+
+Canonical `.iteraspec/<feature_name>/delivery.md` format:
+
+```md
+# Delivery Summary
+
+- Feature: user-authentication
+- Delivery Role: Release Manager
+- Delivery Status: Ready for Final Approval
+- Last Updated At: 2026-05-10T16:02:14-03:00
+
+## Scope Delivered
+- Implemented login endpoint.
+- Implemented session token issuance.
+
+## Requirements Covered
+- RF01
+- RNF01
+
+## Validation Evidence
+- `pytest`
+- Manual login flow verified
+
+## Run / Verification Instructions
+- Start the application locally.
+- Send valid and invalid login requests.
+- Confirm token issuance on valid credentials.
+
+## Known Limitations
+- None
+
+## Deferred Items
+- None
 ```
 
 ## Backlog Separation Rule
@@ -252,15 +383,18 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 - No new feature may be implemented until the change has been incorporated into the appropriate approved workflow artifact.
 
 ## Phase 0: Initialization & Context Setting
+*   **Phase Owner:** `Discovery Lead`
 *   **Action:** The AI must first prompt the user with mandatory questions to define the scope, goals, and constraints of the system or change request (The "What" and "Why").
     *   *First Mandatory Question:* Ask the user which language they want to use for the entire workflow and development process.
     *   *Language Rule:* The language selected by the user in this phase must be used consistently throughout the entire protocol, including questions, specifications, backlog items, status updates, documentation, and any other workflow artifacts unless the user explicitly approves a change.
     *   *Project State Question:* Ask whether the work applies to a new project or an existing codebase/system.
     *   *Mandatory Questions:* Workflow language, project state (new or existing), primary objective, target users, core problem solved, expected output/deliverables.
 *   **Persistence Rule:** The AI must update `.iteraspec/status.md` during this phase so the current context, active feature if known, current phase, and next expected action are persisted even before `specs.md` exists.
+*   **Acceptance Lens:** The `Discovery Lead` must verify that the problem framing, users, constraints, and desired outcome are clear enough to support formal requirements.
 *   **Output Check:** Phase 0 is complete only after a human confirms that the initial context is correct and sufficient to continue to Phase 1.
 
 ## Phase 1: Requirement Formalization & Specification Generation
+*   **Phase Owner:** `Product Owner`
 *   **Input:** Raw conversational data from Phase 0.
 *   **AI Action:** Create the feature workspace if it does not already exist, then generate and finalize a comprehensive **Specification Document (`.iteraspec/<feature_name>/specs.md`)**. This document must be highly detailed, covering functional requirements (what the system must do), non-functional requirements (performance, security, usability), and initial architectural decisions.
 *   **Requirement Identifier Rule:** During this phase, the AI must assign stable `RFNN` and `RNFNN` identifiers inside `specs.md` so later planning and implementation can trace tasks directly back to approved requirements.
@@ -268,11 +402,13 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 *   **Technology Decision Rule:** During this phase, the AI must ask the user whether they want a specific technology stack, framework, language, or platform. If the user does not know, does not care, or does not want to answer, the AI must choose the most appropriate stack based on the project requirements and document that decision in `.iteraspec/<feature_name>/specs.md` with a brief justification.
 *   **Specification Size Rule:** The specification must be detailed enough to support implementation and approval, but it must avoid unnecessary narrative repetition, long prose restatements, and exhaustive discussion of discarded alternatives that do not affect implementation.
 *   **Persistence Rule:** Before asking for approval in this phase, the AI must ensure that `.iteraspec/<feature_name>/specs.md` exists and that `.iteraspec/status.md` marks `P1` as the current phase with the correct next action.
+*   **Acceptance Lens:** The `Product Owner` must verify that the requirements are complete, testable, traceable, and aligned with the user goal.
 *   **Restriction:** No code may be written in this phase.
 *   **Approval Gate:** The phase ends only when a human explicitly approves `.iteraspec/<feature_name>/specs.md`.
 *   **Goal:** Transform ambiguous ideas into concrete, verifiable technical documentation.
 
 ## Phase 2: Backlog Decomposition & Task Planning
+*   **Phase Owner:** `Tech Lead`
 *   **Input:** The finalized `.iteraspec/<feature_name>/specs.md` from Phase 1.
 *   **AI Action:** Generate a structured task catalog and state board inside the same feature workspace: `.iteraspec/<feature_name>/backlog.md` for full task definitions and `.iteraspec/<feature_name>/board.md` for operational task state. This process breaks down the system into atomic, self-contained User Stories or Tasks (e.g., "Implement user authentication endpoint").
 *   **Requirement Reuse Rule:** During backlog generation, the AI must reuse the approved requirement identifiers from `specs.md` and must not rename, renumber, merge, or split them silently.
@@ -293,34 +429,52 @@ If the user requests a new feature, scope change, behavioral change, or any othe
     *   `⚫ Blocked`: Task identifiers that cannot continue due to a failure, dependency, missing decision, environment issue, or external constraint. Each blocked task entry must include a short description of the blocker.
     *   **Exclusivity Rule:** No task identifier may appear in more than one section at the same time.
 *   **Canonical Syntax Rule:** In this phase, the AI must emit `backlog.md` and `board.md` using the canonical Markdown structures defined in `Artifact Format Rule`.
+*   **Acceptance Lens:** The `Tech Lead` must verify that each task is implementable, atomic, prioritized, and correctly traceable to approved requirements.
 *   **Approval Gate:** The backlog catalog and board are considered finalized only after human approval.
 *   **Goal:** Create a clear roadmap that guides development incrementally, ensuring traceability and manageability.
 
 ## Phase 3: Iterative Development Loop (The Core Cycle)
+*   **Phase Owner:** `Senior Developer`
 This phase repeats until the backlog is empty or marked complete by the user.
-1.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
+1.  **Define Testing Strategy:** Before implementing the first backend task of a feature, or whenever the testing strategy is still unclear, the `Senior Developer` must ask the human how to handle backend unit testing.
+    The decision must offer at least these options when backend work is involved:
+    - implement backend tasks with TDD,
+    - defer unit test authoring until all approved implementation tasks are completed.
+    If the selected strategy requires backlog or sequencing changes that are not represented in the approved planning artifacts, the AI must return the workflow to `P2` before implementation continues.
+2.  **Select Task:** Move one task from `🔴 To Do` to `🟡 In Progress`.
     Once Phase 2 is approved, the AI must automatically start Phase 3 with the first selected task unless the human explicitly pauses or requests planning changes first. After that, each human-approved closure of a `🟢 Done` task authorizes the AI to automatically select and start the next task according to the Automatic Task Advance Rule.
     Moving a task means removing it from `🔴 To Do` and then adding it to `🟡 In Progress`; it must not remain in both sections.
-2.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
-3.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
-4.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
-5.  **Refactor & Review:** Review the code against the original specifications and improve structure/readability.
-6.  **Report Readiness:** If the task satisfies the relevant tests or appears implementation-complete, the AI must report that the current task appears ready.
+3.  **Create Active Task Context:** Before writing any implementation artifact, the AI must copy or summarize the selected backlog task from `.iteraspec/<feature_name>/backlog.md` into `.iteraspec/<feature_name>/current_task.md`. This file must contain the current task identifier, description, acceptance criteria if available, and any relevant implementation notes.
+4.  **Design/Code:** Develop the necessary code components, following established conventions and best practices (e.g., clean architecture). The AI must not implement anything that is outside the scope described in `.iteraspec/<feature_name>/current_task.md`.
+5.  **Test:** Write the tests that are relevant for the feature being implemented (unit, integration, end-to-end, linting, typechecking, or other applicable validations). Execute all available and relevant verification commands (`npm run lint`, `pytest`, etc.).
+    If the human selected deferred backend unit tests, the AI may postpone unit test authoring for those backend tasks until the planned end-of-implementation testing stage, but it must still run all other relevant validations available for the current task.
+6.  **Refactor & Review:** Review the code against the original specifications and improve structure/readability. This internal review responsibility is part of the `Senior Developer` role and replaces the need for a separate QA phase.
+7.  **Report Readiness:** If the task satisfies the relevant tests or appears implementation-complete, the AI must report that the current task appears ready.
     The readiness report must be concise and should summarize only the implemented delta, relevant validations executed, outstanding risks if any, and the manual validation steps.
-7.  **Provide Manual Validation Steps:** Before asking for approval, the AI must explain how the human can manually test or validate the task, including the expected successful result.
-8.  **Resolve Status:** The task may move from `🟡 In Progress` to `🟢 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass. Once the human confirms the closure as `🟢 Done`, the AI must automatically continue with the next eligible `🔴 To Do` task if one exists, unless the human explicitly instructs the AI not to start the next task yet.
+8.  **Provide Manual Validation Steps:** Before asking for approval, the AI must explain how the human can manually test or validate the task, including the expected successful result.
+9.  **Resolve Status:** The task may move from `🟡 In Progress` to `🟢 Done` only after explicit human confirmation. Without that confirmation, the task must remain in `🟡 In Progress` even if all relevant tests pass. Once the human confirms the closure as `🟢 Done`, the AI must automatically continue with the next eligible `🔴 To Do` task if one exists, unless the human explicitly instructs the AI not to start the next task yet.
     When the task moves to `🟢 Done`, it must be removed from `🟡 In Progress` in the same board update.
-9.  **Retry Rule:** If implementation or validation fails, the AI may retry the task up to 3 times. After the third failed attempt, the task must be moved to `⚫ Blocked`.
-10.  **Handle Failure or Blockers:** If the task cannot continue, fails validation 3 times, or reaches another blocking condition, move it from `🟡 In Progress` to `⚫ Blocked` and record a short description of the blocker and why the task could not be completed.
+    If the `Senior Developer` determines that the active task cannot be implemented as currently planned because the task is ambiguous, oversized, untraceable, or missing upstream decisions, the AI must reject the handoff back to `P2`, record the reason in `.iteraspec/status.md`, and request backlog correction instead of silently redefining scope during implementation.
+10.  **Retry Rule:** If implementation or validation fails, the AI may retry the task up to 3 times. After the third failed attempt, the task must be moved to `⚫ Blocked`.
+11.  **Handle Failure or Blockers:** If the task cannot continue, fails validation 3 times, or reaches another blocking condition, move it from `🟡 In Progress` to `⚫ Blocked` and record a short description of the blocker and why the task could not be completed.
     When the task moves to `⚫ Blocked`, it must be removed from `🟡 In Progress` in the same board update.
-11.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 3 unless the human explicitly pauses the workflow.
+12.  **Approval Gate:** Each completed iteration is considered closed only when a human approves the task outcome or accepts its blocked state. Approval of a `🟢 Done` outcome also authorizes the automatic start of the next task within Phase 3 unless the human explicitly pauses the workflow.
+13.  **Final Technical Closure Rule:** Once the backlog has no remaining implementation work, the `Senior Developer` must perform the final implementation review, complete any deferred unit test work approved by the human, and update the necessary technical documentation.
+14.  **Phase Exit Rule:** After final technical closure, `P3` is complete and the workflow must move to `P4`.
+15.  **Acceptance Lens:** The `Senior Developer` must verify that the implementation matches the active task only, preserves existing approved behavior, includes the relevant validation evidence, and leaves the system in a coherent final state when the backlog is complete.
 
 ## Transition Rule Between Phase 2 and Phase 3
 Approval of `.iteraspec/<feature_name>/specs.md` alone does not authorize implementation, but approval of the Phase 2 planning artifacts does. After Phase 2 is approved, the AI must enter Phase 3 automatically, move the first selected task to `🟡 In Progress`, create `current_task.md`, and begin implementation without requesting an extra authorization step. The AI must not do this only if the human explicitly pauses the workflow or requests backlog changes before coding starts. After that, Phase 3 may continue task by task under the Automatic Task Advance Rule.
 
-## Phase 4: Finalization & Deployment Readiness
-*   **Action:** Once all tasks are complete (`🔴 To Do` is empty), the AI performs a final review of the entire codebase.
-*   **Restriction:** No new feature code may be written in this phase. Only documentation, validation, and final readiness checks are allowed unless a human explicitly sends the work back to implementation.
-*   **Output:** Update documentation (e.g., README, deployment guide) and provide a summary of how the system runs locally and how it can be deployed in production.
-*   **Approval Gate:** The protocol is complete only when a human approves the final system state and documentation.
-*   **Goal:** Deliver a fully documented, tested, and deployable software product.
+## Transition Rule Between Phase 3 and Phase 4
+Once the implementation backlog is complete and `P3` final technical closure is done, the AI must enter `P4` automatically unless the human explicitly pauses the workflow.
+
+## Phase 4: Formal Delivery
+*   **Phase Owner:** `Release Manager`
+*   **Input:** Completed implementation state from `P3`.
+*   **Action:** Create or update `.iteraspec/<feature_name>/delivery.md` as the formal delivery artifact for final human approval.
+*   **Contents Rule:** The delivery artifact must include at least delivered scope, covered requirements, validation evidence, run or verification instructions, and known limitations or deferred items if any.
+*   **Restriction:** No new feature code may be written in this phase. Only final delivery packaging, documentation alignment, and formal closure updates are allowed unless the human explicitly sends the workflow back to `P3`.
+*   **Return Rule:** If the `Release Manager` detects missing delivery evidence, incomplete scope closure, or unresolved technical readiness issues, the AI must reject the handoff back to `P3`, record the reason in `.iteraspec/status.md`, and request corrective work before final approval.
+*   **Approval Gate:** The protocol is complete only when a human explicitly approves `.iteraspec/<feature_name>/delivery.md`.
+*   **Acceptance Lens:** The `Release Manager` must verify that the final delivery is understandable, traceable, and ready for final human approval.

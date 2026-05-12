@@ -18,9 +18,28 @@ Follow `ITERASPEC.md` strictly as the main protocol for this project. Read it co
 
 Then let it start from `Phase 0` and approve each phase and task explicitly.
 
+Phase roles:
+
+- `P0`: `Discovery Lead`
+- `P1`: `Product Owner`
+- `P2`: `Tech Lead`
+- `P3`: `Senior Developer`
+- `P4`: `Release Manager`
+
+Formal delivery closure:
+
+- `P4` is the formal delivery phase handled by `Release Manager`.
+- The final delivery artifact is `.iteraspec/<feature_name>/delivery.md`.
+
 When IteraSpec asks for approval, you can answer with `[A]prueba` or just `a`. If you do not approve, just say what you want changed.
 
+If a receiving phase determines that the previous phase output is not acceptable, it may reject the handoff, return the workflow to the previous phase, and record the reason in `.iteraspec/status.md`.
+
+Before the first backend implementation task, `P3` must ask the human whether backend work should follow TDD or whether unit tests should be deferred until the end of the approved implementation backlog.
+
 Each feature or functionality handled with IteraSpec should keep its own workflow artifacts inside `.iteraspec/<feature_name>/`, for example `.iteraspec/user-authentication/specs.md`, `.iteraspec/user-authentication/backlog.md`, `.iteraspec/user-authentication/board.md`, and `.iteraspec/user-authentication/current_task.md`.
+
+When the feature backlog is complete, IteraSpec should also prepare `.iteraspec/<feature_name>/delivery.md` as the formal delivery summary for final approval.
 
 Each backlog task must be associated with exactly one approved requirement identifier from `specs.md`, using `RFNN` or `RNFNN`.
 
@@ -32,6 +51,7 @@ IteraSpec should also maintain a global file at `.iteraspec/status.md`. On a new
 
 If you want to reuse IteraSpec in another repository, copy at minimum:
 
+- `AGENTS.md`
 - `ITERASPEC.md`
 
 If you also want the GUI viewer, copy these files into a `gui/` directory at the root of the target project:
@@ -44,6 +64,7 @@ Expected structure in the target project:
 
 ```text
 your-project/
+  AGENTS.md
   ITERASPEC.md
   .iteraspec/
     status.md

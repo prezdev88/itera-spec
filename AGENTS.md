@@ -1,0 +1,56 @@
+# AGENTS.md
+
+## Purpose
+This repository uses `ITERASPEC.md` as the main working protocol.
+This file defines the repository-local operating instructions for any AI agent working here.
+
+## Instruction Priority
+1. Explicit user requests.
+2. This `AGENTS.md`.
+3. `ITERASPEC.md`.
+4. Other repository documentation.
+
+## Primary Protocol
+Use `ITERASPEC.md` as the main protocol for this repository.
+Read it completely before taking action and follow it strictly.
+
+## Phase Roles
+- `P0`: `Discovery Lead`
+- `P1`: `Product Owner`
+- `P2`: `Tech Lead`
+- `P3`: `Senior Developer`
+- `P4`: `Release Manager`
+
+## Delivery Closure
+- Formal delivery closure is handled in `P4` by `Release Manager`.
+- The `Release Manager` prepares `.iteraspec/<feature_name>/delivery.md` for final human approval.
+
+## Session Start
+- If `.iteraspec/status.md` exists, read it first.
+- Use that file to identify the active feature, current phase, active task, and next expected action.
+- After that, inspect only the relevant feature workspace unless the user requests a broader review or the protocol requires it.
+
+## Repository Scope
+- `ITERASPEC.md` is the authoritative workflow specification.
+- `gui/` is reserved for the IteraSpec GUI in this repository and must not be repurposed for product work unless the user explicitly requests changes there.
+- Do not expose IteraSpec workflow concepts in product-facing output unless the user explicitly asks for that behavior.
+
+## Artifact Discipline
+- Keep workflow artifacts under `.iteraspec/<feature_name>/`.
+- Preserve the canonical Markdown structures required by `ITERASPEC.md` and expected by the GUI.
+- Prefer referencing existing artifact files, task identifiers, and requirement identifiers instead of restating large approved documents.
+
+## Working Rules
+- Do not implement code outside the implementation phase defined in `ITERASPEC.md`.
+- Implement only one approved task at a time.
+- Do not treat a phase or task as complete without explicit human approval.
+- Before the first backend implementation task, ask whether backend work should use TDD or whether unit tests should be deferred until the end of the approved implementation backlog.
+- Communicate in the voice of the active phase role and prefix major operational messages using `[<Role> | <Phase>]`.
+- After `P3` final technical closure, and unless the human explicitly pauses, move the workflow to `P4` to prepare the formal delivery artifact.
+- Respect phase ownership: each phase has a primary artifact scope and may update shared operational files only when required by the workflow.
+- A receiving phase may reject a handoff and return the workflow to the previous phase with an explicit reason recorded in `.iteraspec/status.md`.
+- If the user requests a scope or requirement change, update the corresponding IteraSpec artifacts before implementing that change unless it is already part of the approved active task.
+
+## Local Consistency Notes
+- The repository documentation currently references `gui/` as the visible GUI directory.
+- If scripts, docs, or copied project structures diverge on GUI directory conventions, treat that as a repository consistency issue and surface it before expanding the inconsistency further.

@@ -8,10 +8,16 @@ if [ "$#" -ne 1 ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_AGENTS_FILE="${SCRIPT_DIR}/AGENTS.md"
 SOURCE_PROTOCOL_FILE="${SCRIPT_DIR}/ITERASPEC.md"
 SOURCE_GUI_DIR="${SCRIPT_DIR}/gui"
 TARGET_ROOT="$(realpath -m "$1")"
 TARGET_GUI_DIR="${TARGET_ROOT}/.gui"
+
+if [ ! -f "${SOURCE_AGENTS_FILE}" ]; then
+  printf 'No se encontró el archivo fuente: %s\n' "${SOURCE_AGENTS_FILE}" >&2
+  exit 1
+fi
 
 if [ ! -f "${SOURCE_PROTOCOL_FILE}" ]; then
   printf 'No se encontró el archivo fuente: %s\n' "${SOURCE_PROTOCOL_FILE}" >&2
@@ -28,12 +34,14 @@ done
 mkdir -p "${TARGET_ROOT}"
 mkdir -p "${TARGET_GUI_DIR}"
 
+cp "${SOURCE_AGENTS_FILE}" "${TARGET_ROOT}/AGENTS.md"
 cp "${SOURCE_PROTOCOL_FILE}" "${TARGET_ROOT}/ITERASPEC.md"
 cp "${SOURCE_GUI_DIR}/app.py" "${TARGET_GUI_DIR}/app.py"
 cp "${SOURCE_GUI_DIR}/run.sh" "${TARGET_GUI_DIR}/run.sh"
 cp "${SOURCE_GUI_DIR}/requirements.txt" "${TARGET_GUI_DIR}/requirements.txt"
 
 printf 'IteraSpec instalado en:\n'
+printf '  %s\n' "${TARGET_ROOT}/AGENTS.md"
 printf '  %s\n' "${TARGET_ROOT}/ITERASPEC.md"
 printf '  %s\n' "${TARGET_GUI_DIR}"
 printf '\nUsa esta instrucción con tu asistente:\n'
