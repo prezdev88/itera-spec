@@ -29,7 +29,7 @@ Read it completely before taking action and follow it strictly.
 - If more than one developer profile is assigned, designate one lead developer for `P4`.
 - The human may override the proposed staffing decision, but manual selection is optional and not the default path.
 - Every backlog task must be assigned to one or more staffed developers before `P4` begins.
-- Keep task assignees visible in `backlog.md`, `current_task.md`, and `.iteraspec/status.md` using the canonical IteraSpec formats.
+- Keep task assignees visible in `backlog.md`, `current_task.md`, and `.iteraspec/workspaces/status.md` using the canonical IteraSpec formats.
 
 ## Developer Creation
 - If the user wants to create a new developer profile, follow `DEVELOPER_PROFILE_CREATION.md`.
@@ -38,10 +38,10 @@ Read it completely before taking action and follow it strictly.
 
 ## Delivery Closure
 - Formal delivery closure is handled in `P5` by `Release Manager`.
-- The `Release Manager` prepares `.iteraspec/<feature_name>/delivery.md` for final human approval.
+- The `Release Manager` prepares `.iteraspec/workspaces/<feature_name>/delivery.md` for final human approval.
 
 ## Session Start
-- If `.iteraspec/status.md` exists, read it first.
+- If `.iteraspec/workspaces/status.md` exists, read it first.
 - Use that file to identify the active feature, current phase, active task, and next expected action.
 - After that, inspect only the relevant feature workspace unless the user requests a broader review or the protocol requires it.
 
@@ -51,7 +51,7 @@ Read it completely before taking action and follow it strictly.
 - Do not expose IteraSpec workflow concepts in product-facing output unless the user explicitly asks for that behavior.
 
 ## Artifact Discipline
-- Keep workflow artifacts under `.iteraspec/<feature_name>/`.
+- Keep workflow artifacts under `.iteraspec/workspaces/<feature_name>/`.
 - Keep reusable developer profiles under `.iteraspec/developers/`.
 - Preserve the canonical Markdown structures required by `ITERASPEC.md` and expected by the GUI.
 - Prefer referencing existing artifact files, task identifiers, and requirement identifiers instead of restating large approved documents.
@@ -61,13 +61,13 @@ Read it completely before taking action and follow it strictly.
 - Implement only one approved task at a time.
 - Do not treat a task or approval-gated phase as complete without explicit human approval.
 - Exception: after `P4` final technical closure, the workflow may transition automatically to `P5` if every implementation task has already been human-approved and the user has not explicitly paused.
-- Before `P4` implementation begins, complete `P3` staffing and persist `.iteraspec/<feature_name>/staffing.md`.
+- Before `P4` implementation begins, complete `P3` staffing and persist `.iteraspec/workspaces/<feature_name>/staffing.md`.
 - Before the first backend implementation task in `P4`, ask whether backend work should use TDD or whether unit tests should be deferred until the end of the approved implementation backlog.
 - Communicate in the voice of the active phase role and prefix major operational messages using `[<Role> | <Phase>]`.
 - In `P4`, communicate as the assigned lead developer display name.
 - After `P4` final technical closure, and unless the human explicitly pauses, move the workflow to `P5` to prepare the formal delivery artifact.
 - Respect phase ownership: each phase has a primary artifact scope and may update shared operational files only when required by the workflow.
-- A receiving phase may reject a handoff and return the workflow to the previous phase with an explicit reason recorded in `.iteraspec/status.md`.
+- A receiving phase may reject a handoff and return the workflow to the previous phase with an explicit reason recorded in `.iteraspec/workspaces/status.md`.
 - If the user requests a scope or requirement change, update the corresponding IteraSpec artifacts before implementing that change unless it is already part of the approved active task.
 
 ## Local Consistency Notes

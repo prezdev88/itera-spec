@@ -1274,6 +1274,7 @@ KNOWN_DOCUMENTS = ("status.md", "specs.md", "backlog.md", "board.md", "staffing.
 WORKSPACE_DOCUMENT_ORDER = ("specs.md", "backlog.md", "board.md", "staffing.md", "current_task.md", "delivery.md")
 GLOBAL_WORKSPACE_NAME = "_global"
 DEVELOPERS_DIRNAME = "developers"
+WORKSPACES_DIRNAME = "workspaces"
 BACKLOG_SECTION_PATTERNS = (
     (re.compile(r"^##\s+`?🔴\s+To Do`?\s*$"), ("todo", "To Do")),
     (re.compile(r"^##\s+`?🟢\s+To Do`?\s*$"), ("todo", "To Do")),
@@ -1411,7 +1412,7 @@ def create_app() -> FastAPI:
         <h1>IteraSpec GUI Viewer</h1>
         <p class="lede">
           Un dashboard visual para recorrer especificaciones, backlog y contexto activo de
-          <code>.iteraspec/</code> sin leer Markdown plano.
+          <code>.iteraspec/workspaces/</code> sin leer Markdown plano.
         </p>
         <div class="status-card">
           <span class="status-label">Modo</span>
@@ -1599,7 +1600,11 @@ def resolve_iteraspec_root() -> Path:
     configured = os.environ.get("ITERASPEC_ROOT")
     if configured:
         return Path(configured).expanduser().resolve()
-    return Path(__file__).resolve().parent.parent.joinpath(".iteraspec")
+    script_dir = Path(__file__).resolve().parent
+    embedded_root = script_dir.parent
+    if embedded_root.name == ".iteraspec":
+        return embedded_root
+    return script_dir.parent.joinpath(".iteraspec")
 
 
 def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace]:
@@ -1611,10 +1616,16 @@ def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace
     global_workspace = _discover_global_workspace(root)
     if global_workspace is not None:
         workspaces.append(global_workspace)
-    for candidate in sorted(root.iterdir(), key=lambda path: path.name):
+    workspaces_root = _resolve_workspaces_dir(root)
+    for candidate in sorted(workspaces_root.iterdir(), key=lambda path: path.name):
         if not candidate.is_dir():
             continue
-        if candidate.name == DEVELOPERS_DIRNAME:
+        if workspaces_root == root and candidate.name in {
+            DEVELOPERS_DIRNAME,
+            WORKSPACES_DIRNAME,
+            "gui",
+            "legacy-backup",
+        }:
             continue
         workspaces.append(
             IteraSpecWorkspace(
@@ -1656,13 +1667,16 @@ def discover_developers(base_dir: Path | None = None) -> list[DeveloperProfile]:
 
 
 def _discover_global_workspace(root_dir: Path) -> IteraSpecWorkspace | None:
-    status_path = root_dir / "status.md"
+    workspaces_dir = _resolve_workspaces_dir(root_dir)
+    status_path = workspaces_dir / "status.md"
+    if not status_path.exists() or not status_path.is_file():
+        status_path = root_dir / "status.md"
     if not status_path.exists() or not status_path.is_file():
         return None
 
     return IteraSpecWorkspace(
         name=GLOBAL_WORKSPACE_NAME,
-        relative_path=root_dir.relative_to(root_dir.parent).as_posix(),
+        relative_path=status_path.parent.relative_to(root_dir.parent).as_posix(),
         documents=[
             IteraSpecDocument(
                 name="status.md",
@@ -1786,6 +1800,13 @@ def _resolve_developers_dir(root: Path) -> Path:
     if repo_dir.exists() and repo_dir.is_dir():
         return repo_dir
     return embedded_dir
+
+
+def _resolve_workspaces_dir(root: Path) -> Path:
+    embedded_dir = root / WORKSPACES_DIRNAME
+    if embedded_dir.exists() and embedded_dir.is_dir():
+        return embedded_dir
+    return root
 
 
 def _split_profile_list_value(raw_value: str) -> list[str]:
@@ -2127,7 +2148,7 @@ def render_status_view(content: str) -> str:
         "<div class=\"status-hero-copy\">"
         "<p class=\"section-kicker\">Estado Global</p>"
         "<p class=\"status-eyebrow\">Resumen de reanudacion</p>"
-        "<p>Checkpoint persistido en <code>.iteraspec/status.md</code>.</p>"
+        "<p>Checkpoint persistido en <code>.iteraspec/workspaces/status.md</code>.</p>"
         "</div>"
         "<aside class=\"status-phase-card\">"
         "<span>Fase actual</span>"
@@ -2792,7 +2813,7 @@ def _render_workspaces(workspaces: list[IteraSpecWorkspace]) -> str:
         return (
             "<div class=\"empty-state\">"
             "<strong>No se detectaron workspaces IteraSpec.</strong>"
-            "<p>La aplicación seguirá funcionando aunque <code>.iteraspec/</code> esté vacío o incompleto.</p>"
+            "<p>La aplicación seguirá funcionando aunque <code>.iteraspec/workspaces/</code> esté vacío o incompleto.</p>"
             "</div>"
         )
 
@@ -2905,7 +2926,7 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
         <article class="metric-card">
           <span class="metric-label">Workspaces</span>
           <strong>{workspace_count}</strong>
-          <p>Features detectadas dentro de <code>.iteraspec/</code>.</p>
+          <p>Features detectadas dentro de <code>.iteraspec/workspaces/</code>.</p>
         </article>
         <article class="metric-card">
           <span class="metric-label">Documentos</span>
