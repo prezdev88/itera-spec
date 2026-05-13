@@ -1826,7 +1826,7 @@ def render_markdown(markdown_text: str, workspace_name: str = "") -> str:
     lines = markdown_text.splitlines()
     parts: list[str] = []
     paragraph: list[str] = []
-    list_items: list[str] = []
+    list_items: list[tuple[int, str]] = []
     code_block: list[str] = []
     in_code_block = False
     index = 0
@@ -1840,8 +1840,7 @@ def render_markdown(markdown_text: str, workspace_name: str = "") -> str:
 
     def flush_list() -> None:
         if list_items:
-            items = "".join(f"<li>{_render_inline(item, workspace_name)}</li>" for item in list_items)
-            parts.append(f"<ul>{items}</ul>")
+            parts.append(_render_markdown_list(list_items, workspace_name))
             list_items.clear()
 
     def flush_code_block() -> None:
@@ -1885,10 +1884,12 @@ def render_markdown(markdown_text: str, workspace_name: str = "") -> str:
             index += 1
             continue
 
-        if stripped.lstrip().startswith(("- ", "* ")):
+        list_match = re.match(r"^([ \t]*)[-*]\s+(.+)$", line)
+        if list_match is not None:
             flush_paragraph()
-            item = stripped.lstrip()[2:].strip()
-            list_items.append(item)
+            indent = _list_indent_width(list_match.group(1))
+            item = list_match.group(2).strip()
+            list_items.append((indent, item))
             index += 1
             continue
 
@@ -1909,6 +1910,43 @@ def render_markdown(markdown_text: str, workspace_name: str = "") -> str:
     flush_list()
 
     return "\n".join(parts) if parts else "<p class=\"muted\">Documento vacío.</p>"
+
+
+def _render_markdown_list(items: list[tuple[int, str]], workspace_name: str = "") -> str:
+    tree = _build_markdown_list_tree(items)
+    return _render_markdown_list_nodes(tree, workspace_name)
+
+
+def _build_markdown_list_tree(items: list[tuple[int, str]]) -> list[dict[str, object]]:
+    root: list[dict[str, object]] = []
+    stack: list[tuple[int, list[dict[str, object]]]] = [(-1, root)]
+
+    for indent, text in items:
+        while len(stack) > 1 and indent <= stack[-1][0]:
+            stack.pop()
+
+        node: dict[str, object] = {"text": text, "children": []}
+        stack[-1][1].append(node)
+        stack.append((indent, node["children"]))  # type: ignore[arg-type]
+
+    return root
+
+
+def _render_markdown_list_nodes(nodes: list[dict[str, object]], workspace_name: str = "") -> str:
+    items_markup: list[str] = []
+    for node in nodes:
+        text = _render_inline(str(node["text"]), workspace_name)
+        children = node["children"]
+        child_markup = ""
+        if isinstance(children, list) and children:
+            child_markup = _render_markdown_list_nodes(children, workspace_name)
+        items_markup.append(f"<li>{text}{child_markup}</li>")
+    return f"<ul>{''.join(items_markup)}</ul>"
+
+
+def _list_indent_width(raw_indent: str) -> int:
+    expanded = raw_indent.expandtabs(4)
+    return len(expanded)
 
 
 def _render_inline(text: str, workspace_name: str = "") -> str:
