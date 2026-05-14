@@ -6,9 +6,10 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import quote
 
 try:
-    from fastapi import FastAPI, HTTPException
+    from fastapi import FastAPI, HTTPException, Request
     from fastapi.responses import HTMLResponse, Response
     import uvicorn
 except ModuleNotFoundError as exc:
@@ -24,46 +25,66 @@ except ModuleNotFoundError as exc:
 STYLESHEET = """
 :root {
   color-scheme: light;
-  --bg: #f4efe5;
-  --panel: rgba(255, 251, 245, 0.72);
-  --text: #1f1c17;
-  --muted: #6b6258;
-  --accent: #0f766e;
-  --accent-strong: #115e59;
-  --border: rgba(31, 28, 23, 0.1);
-  --surface-soft: rgba(255, 255, 255, 0.58);
-  --surface-muted: rgba(255, 255, 255, 0.55);
-  --surface-solid: rgba(255, 255, 255, 0.78);
-  --surface-subtle: rgba(31, 28, 23, 0.04);
-  --surface-subtle-strong: rgba(31, 28, 23, 0.06);
-  --track: rgba(31, 28, 23, 0.08);
-  --table-head: rgba(15, 118, 110, 0.12);
-  --table-row: rgba(15, 118, 110, 0.04);
-  --code-bg: #1d2a2a;
-  --code-text: #eef6f4;
-  --shadow: 0 24px 80px rgba(87, 64, 30, 0.16);
+  --bg: #e9eef5;
+  --panel: rgba(255, 255, 255, 0.94);
+  --text: #111827;
+  --muted: #5f6b7a;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --border: rgba(22, 33, 38, 0.1);
+  --surface-soft: rgba(255, 255, 255, 0.9);
+  --surface-muted: rgba(248, 250, 251, 0.96);
+  --surface-solid: rgba(255, 255, 255, 0.98);
+  --surface-subtle: rgba(22, 33, 38, 0.045);
+  --surface-subtle-strong: rgba(22, 33, 38, 0.075);
+  --track: rgba(22, 33, 38, 0.1);
+  --table-head: rgba(37, 99, 235, 0.1);
+  --table-row: rgba(37, 99, 235, 0.035);
+  --code-bg: #0f172a;
+  --code-text: #e5eefc;
+  --shadow: none;
+  --sidebar-bg: #0f172a;
+  --sidebar-surface: rgba(255, 255, 255, 0.04);
+  --sidebar-text: #eef4ff;
+  --sidebar-muted: rgba(238, 244, 255, 0.62);
+  --hero-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 252, 0.96));
+  --hero-border: rgba(22, 33, 38, 0.08);
+  --sidebar-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  --menu-active-bg: rgba(37, 99, 235, 0.16);
+  --menu-active-border: rgba(37, 99, 235, 0.34);
+  --menu-hover-shadow: none;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d1618;
-  --panel: rgba(10, 19, 22, 0.82);
-  --text: #edf4f2;
-  --muted: #9cb0ab;
-  --accent: #4fd1c5;
-  --accent-strong: #92f1e6;
-  --border: rgba(157, 192, 185, 0.16);
-  --surface-soft: rgba(15, 27, 31, 0.72);
-  --surface-muted: rgba(14, 24, 29, 0.72);
-  --surface-solid: rgba(18, 31, 35, 0.9);
-  --surface-subtle: rgba(255, 255, 255, 0.05);
-  --surface-subtle-strong: rgba(255, 255, 255, 0.08);
-  --track: rgba(255, 255, 255, 0.12);
-  --table-head: rgba(79, 209, 197, 0.16);
-  --table-row: rgba(79, 209, 197, 0.06);
-  --code-bg: #081114;
-  --code-text: #dff7f2;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  --bg: #0b1020;
+  --panel: rgba(15, 23, 42, 0.96);
+  --text: #e5ecf7;
+  --muted: #90a0b7;
+  --accent: #60a5fa;
+  --accent-strong: #93c5fd;
+  --border: rgba(170, 190, 198, 0.14);
+  --surface-soft: rgba(15, 23, 42, 0.92);
+  --surface-muted: rgba(12, 20, 36, 0.98);
+  --surface-solid: rgba(18, 28, 48, 0.98);
+  --surface-subtle: rgba(255, 255, 255, 0.04);
+  --surface-subtle-strong: rgba(255, 255, 255, 0.07);
+  --track: rgba(255, 255, 255, 0.1);
+  --table-head: rgba(96, 165, 250, 0.16);
+  --table-row: rgba(96, 165, 250, 0.05);
+  --code-bg: #050816;
+  --code-text: #dde8ff;
+  --shadow: none;
+  --sidebar-bg: #050816;
+  --sidebar-surface: rgba(255, 255, 255, 0.045);
+  --sidebar-text: #eef4ff;
+  --sidebar-muted: rgba(238, 244, 255, 0.64);
+  --hero-bg: linear-gradient(180deg, rgba(18, 28, 48, 0.96), rgba(12, 20, 36, 0.96));
+  --hero-border: rgba(170, 190, 198, 0.12);
+  --sidebar-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  --menu-active-bg: rgba(96, 165, 250, 0.14);
+  --menu-active-border: rgba(96, 165, 250, 0.28);
+  --menu-hover-shadow: none;
 }
 
 * {
@@ -73,12 +94,9 @@ STYLESHEET = """
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Avenir Next", "Segoe UI", "Noto Sans", "Helvetica Neue", sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(180, 83, 9, 0.16), transparent 30%),
-    linear-gradient(135deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 72%, #b45309 28%) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 92%, #d9e4f6 8%) 100%);
 }
 
 a {
@@ -95,6 +113,319 @@ code {
   width: min(1280px, calc(100% - 32px));
   margin: 0 auto;
   padding: 48px 0 80px;
+}
+
+.home-app-shell {
+  display: grid;
+  grid-template-columns: 308px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.home-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 20px 16px;
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  background: var(--sidebar-bg);
+  box-shadow: var(--sidebar-shadow);
+  color: var(--sidebar-text);
+}
+
+.home-sidebar-header {
+  display: grid;
+  gap: 12px;
+  padding: 0 4px 4px;
+}
+
+.home-title {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.05;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sidebar-text);
+}
+
+.home-sidebar-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.home-menu {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-workspace-picker {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-workspace-picker label {
+  color: var(--sidebar-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.home-workspace-select {
+  width: 100%;
+  padding: 14px 44px 14px 14px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sidebar-text);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--sidebar-text) 50%), linear-gradient(135deg, var(--sidebar-text) 50%, transparent 50%);
+  background-position: calc(100% - 20px) calc(50% - 3px), calc(100% - 14px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.home-workspace-select option {
+  color: #0f172a;
+}
+
+.home-workspace-select:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
+}
+
+.home-menu-group {
+  display: grid;
+  gap: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-menu-group.collapsible {
+  gap: 0;
+}
+
+.home-menu-label {
+  color: var(--sidebar-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.home-menu-link {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.home-menu-link:hover,
+.home-menu-link.active,
+.home-menu-link:focus-visible {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.home-menu-link strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--sidebar-text);
+}
+
+.home-menu-copy {
+  display: block;
+}
+
+.home-menu-icon,
+.home-menu-summary-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  font-size: 1.18rem;
+  line-height: 1;
+}
+
+.home-menu-summary {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  list-style: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.home-menu-summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-menu-summary::after {
+  content: "+";
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  color: var(--accent-strong);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.home-menu-group[open] .home-menu-summary::after {
+  content: "-";
+}
+
+.home-menu-summary strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--sidebar-text);
+}
+
+.home-menu-group.collapsible {
+  position: relative;
+}
+
+.home-menu-group.collapsible:hover .home-menu-summary,
+.home-menu-group.collapsible[open] .home-menu-summary {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.home-submenu {
+  display: grid;
+  gap: 0;
+  margin: 0 0 8px;
+  padding: 0 0 0 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.home-submenu-link {
+  display: block;
+  padding: 12px 12px;
+  color: var(--sidebar-muted);
+  text-decoration: none;
+  line-height: 1.45;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.home-submenu-link:hover,
+.home-submenu-link.active,
+.home-submenu-link:focus-visible {
+  color: var(--sidebar-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.home-content {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 16px 18px 22px;
+  min-width: 0;
+}
+
+.home-hero {
+  display: grid;
+  gap: 0;
+  padding: 22px 24px;
+  border: 1px solid var(--hero-border);
+  border-radius: 0;
+  background: var(--hero-bg);
+  box-shadow: var(--shadow);
+}
+
+.home-hero h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.home-section {
+  display: grid;
+  gap: 18px;
+  scroll-margin-top: 24px;
+}
+
+.home-section-header {
+  display: grid;
+  gap: 8px;
+}
+
+.home-section-header h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+}
+
+.home-section-header p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.stack-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.stack-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stack-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-panel {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface-soft);
+  box-shadow: var(--shadow);
+}
+
+.home-panel h3 {
+  margin: 0 0 12px;
+  font-size: 1.28rem;
+}
+
+.home-panel p {
+  color: var(--muted);
+}
+
+.home-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.documents-panel-list {
+  display: grid;
+  gap: 14px;
 }
 
 .shell-toolbar,
@@ -159,9 +490,9 @@ h1 {
 .metric-card,
 .overview-card,
 .dashboard-focus-card {
-  padding: 22px;
+  padding: 20px;
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 0;
   background: var(--surface-soft);
   box-shadow: var(--shadow);
 }
@@ -193,6 +524,7 @@ h1 {
 .overview-card h2,
 .dashboard-focus-card h3 {
   margin: 8px 0 12px;
+  letter-spacing: -0.02em;
 }
 
 .quick-links,
@@ -209,8 +541,10 @@ h1 {
   justify-content: center;
   width: fit-content;
   padding: 0.72rem 1rem;
-  border-radius: 999px;
+  border-radius: 0;
   text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
 .quick-link {
@@ -222,6 +556,15 @@ h1 {
   margin-top: 16px;
   background: var(--accent);
   color: #f5fbfa;
+}
+
+.quick-link:hover,
+.primary-link:hover {
+  transform: translateY(-1px);
+}
+
+.quick-link:hover {
+  border-color: var(--menu-active-border);
 }
 
 .mini-status-row {
@@ -301,15 +644,18 @@ h1 {
 
 .workspace-card,
 .empty-state {
-  padding: 22px;
+  padding: 20px;
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 0;
   background: var(--surface-muted);
+  box-shadow: var(--shadow);
 }
 
 .workspace-card header h2 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 .workspace-card header p {
@@ -357,6 +703,7 @@ h1 {
 
 .doc-link {
   text-decoration: none;
+  transition: color 120ms ease;
 }
 
 .doc-link:hover {
@@ -412,24 +759,26 @@ h1 {
   gap: 6px;
   padding: 6px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-solid);
-  box-shadow: var(--shadow);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 
 .theme-option {
   border: 0;
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.58rem 0.92rem;
   background: transparent;
-  color: var(--muted);
+  color: var(--sidebar-muted);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .theme-option:hover {
-  color: var(--text);
+  color: var(--sidebar-text);
 }
 
 .theme-option.active {
@@ -581,6 +930,11 @@ h1 {
 .markdown-body h6 {
   line-height: 1.15;
   margin: 1.6em 0 0.6em;
+}
+
+.markdown-body h1 {
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  letter-spacing: -0.03em;
 }
 
 .markdown-body h1:first-child,
@@ -1182,6 +1536,24 @@ code {
 }
 
 @media (max-width: 640px) {
+  .home-app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .home-sidebar,
+  .home-content {
+    padding: 20px;
+  }
+
+  .home-hero {
+    padding: 22px 20px;
+  }
+
+  .stack-grid.two,
+  .stack-grid.three {
+    grid-template-columns: 1fr;
+  }
+
   .shell {
     width: min(100% - 20px, 960px);
     padding-top: 24px;
@@ -1379,49 +1751,21 @@ def create_app() -> FastAPI:
         return Response(content=STYLESHEET, media_type="text/css")
 
     @app.get("/", response_class=HTMLResponse)
-    async def home() -> str:
+    async def home(request: Request) -> str:
         workspaces = discover_workspaces(iteraspec_root)
         developers = discover_developers(iteraspec_root)
-        workspace_markup = _render_workspaces(workspaces)
-        developer_markup = _render_developers(developers)
-        dashboard_markup = _render_dashboard(workspaces, iteraspec_root)
         theme_switcher = render_theme_switcher()
-        return """<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>__PROJECT_TITLE__</title>
-    __THEME_BOOTSTRAP__
-    <link rel="stylesheet" href="/styles.css">
-  </head>
-  <body>
-    <main class="shell">
-      <section class="shell-toolbar">
-        <div class="toolbar-actions">__THEME_SWITCHER__</div>
-      </section>
-      <section class="hero">
-        <h1>__PROJECT_TITLE__</h1>
-      </section>
-      __DASHBOARD__
-      <section class="inventory">
-        <div class="inventory-heading">
-          <p class="section-kicker">Inventario Detectado</p>
-          <h2>Workspaces IteraSpec disponibles</h2>
-        </div>
-        <div class="workspace-grid">__WORKSPACES__</div>
-      </section>
-      <section class="inventory">
-        <div class="inventory-heading">
-          <p class="section-kicker">Staff Disponible</p>
-          <h2>Perfiles de developers detectados</h2>
-        </div>
-        <div class="workspace-grid">__DEVELOPERS__</div>
-      </section>
-    </main>
-    __THEME_BEHAVIOR__
-  </body>
-</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DEVELOPERS__", developer_markup).replace("__DASHBOARD__", dashboard_markup).replace("__PROJECT_TITLE__", html.escape(project_title)).replace("__THEME_SWITCHER__", theme_switcher).replace("__THEME_BOOTSTRAP__", THEME_BOOTSTRAP_SCRIPT).replace("__THEME_BEHAVIOR__", THEME_BEHAVIOR_SCRIPT)
+        current_section = request.query_params.get("section", "dashboard")
+        selected_workspace = request.query_params.get("workspace", "")
+        return _render_home_page(
+            project_title,
+            workspaces,
+            developers,
+            iteraspec_root,
+            theme_switcher,
+            current_section,
+            selected_workspace,
+        )
 
     @app.get("/api/workspaces")
     async def workspaces() -> dict[str, object]:
@@ -2113,7 +2457,7 @@ def render_status_view(content: str) -> str:
             "<h2>status.md</h2>"
             "<p>No se detectó una estructura resumible. Se muestra como Markdown estándar.</p>"
             "</section>"
-            f"{render_markdown(content, workspace_name)}"
+            f"{render_markdown(content)}"
             "</div>"
         )
 
@@ -2849,6 +3193,181 @@ def _render_workspaces(workspaces: list[IteraSpecWorkspace]) -> str:
     )
 
 
+def _render_home_page(
+    project_title: str,
+    workspaces: list[IteraSpecWorkspace],
+    developers: list[DeveloperProfile],
+    iteraspec_root: Path,
+    theme_switcher: str,
+    current_section: str,
+    selected_workspace_name: str,
+) -> str:
+    active_workspace = _resolve_active_workspace(workspaces, iteraspec_root)
+    normalized_section = current_section if current_section in {
+        "dashboard",
+        "board",
+        "current-task",
+        "documents",
+        "developers",
+        "status",
+    } else ("documents" if current_section == "workspaces" else "dashboard")
+    focus_workspace = _resolve_workspace_for_section(workspaces, active_workspace, selected_workspace_name)
+    section_title, section_description, section_markup = _render_home_section_content(
+        normalized_section,
+        workspaces,
+        developers,
+        iteraspec_root,
+        focus_workspace,
+    )
+    return f"""<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{html.escape(project_title)}</title>
+    {THEME_BOOTSTRAP_SCRIPT}
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="home-app-shell">
+      {_render_primary_sidebar(project_title, theme_switcher, normalized_section, workspaces, developers, focus_workspace.name if focus_workspace else "", "", "")}
+      <section class="home-content">
+        <header class="home-hero">
+          <h1>{html.escape(section_title)}</h1>
+        </header>
+        <section class="home-section">
+          {section_markup}
+        </section>
+      </section>
+    </main>
+    {THEME_BEHAVIOR_SCRIPT}
+  </body>
+</html>"""
+
+
+def _render_primary_sidebar(
+    project_title: str,
+    theme_switcher: str,
+    current_section: str,
+    workspaces: list[IteraSpecWorkspace],
+    developers: list[DeveloperProfile],
+    current_workspace_name: str,
+    current_document_name: str,
+    current_developer_name: str,
+) -> str:
+    workspace_picker = _render_workspace_picker(current_section, workspaces, current_workspace_name)
+    return (
+        "<aside class=\"home-sidebar\">"
+        "<div class=\"home-sidebar-header\">"
+        f"<h1 class=\"home-title\">{html.escape(project_title)}</h1>"
+        f"<div class=\"toolbar-actions\">{theme_switcher}</div>"
+        "</div>"
+        f"{workspace_picker}"
+        "<nav class=\"home-menu\" aria-label=\"Secciones principales\">"
+        f"{_render_primary_menu(current_section, workspaces, developers, current_workspace_name, current_document_name, current_developer_name)}"
+        "</nav>"
+        "</aside>"
+    )
+
+
+def _render_workspace_picker(
+    current_section: str,
+    workspaces: list[IteraSpecWorkspace],
+    current_workspace_name: str,
+) -> str:
+    available = [workspace for workspace in workspaces if workspace.name != GLOBAL_WORKSPACE_NAME]
+    if not available:
+        return ""
+    selected_workspace = current_workspace_name or available[0].name
+    options = "".join(
+        f'<option value="/?section={quote(current_section)}&workspace={quote(workspace.name)}"{" selected" if workspace.name == selected_workspace else ""}>{html.escape(_workspace_label(workspace.name))}</option>'
+        for workspace in available
+    )
+    return (
+        '<div class="home-workspace-picker">'
+        '<label for="workspace-picker">Workspace</label>'
+        f'<select id="workspace-picker" class="home-workspace-select" onchange="window.location.href=this.value">{options}</select>'
+        "</div>"
+    )
+
+
+def _render_primary_menu(
+    current_section: str,
+    workspaces: list[IteraSpecWorkspace],
+    developers: list[DeveloperProfile],
+    current_workspace_name: str,
+    current_document_name: str,
+    current_developer_name: str,
+) -> str:
+    icons = {
+        "dashboard": "◫",
+        "status": "◎",
+        "board": "▤",
+        "current-task": "↳",
+        "documents": "▣",
+        "developers": "◍",
+    }
+    current_workspace = next((workspace for workspace in workspaces if workspace.name == current_workspace_name), None)
+    workspace_query = f"&workspace={quote(current_workspace.name)}" if current_workspace is not None else ""
+    document_submenu = (
+        '<a class="home-submenu-link{}" href="/?section=documents{}">Overview</a>'.format(
+            " active" if current_section == "documents" and not current_document_name else "",
+            workspace_query,
+        )
+        + "".join(
+        f'<a class="home-submenu-link{" active" if current_document_name == document.name else ""}" href="/workspaces/{current_workspace.name}/documents/{document.name}">{html.escape(document.name)}</a>'
+        for document in current_workspace.documents
+    ) if current_workspace is not None else '<span class="muted">Sin workspace activo.</span>'
+    )
+    developer_submenu = (
+        '<a class="home-submenu-link{}" href="/?section=developers{}">Overview</a>'.format(
+            " active" if current_section == "developers" and not current_developer_name else "",
+            workspace_query,
+        )
+        + "".join(
+        f'<a class="home-submenu-link{" active" if current_developer_name == developer.filename else ""}" href="{developer_detail_href(developer.filename)}">{html.escape(developer.display_name)}</a>'
+        for developer in developers
+    ) if developers else '<span class="muted">Sin developers.</span>'
+    )
+    items = [
+        ("dashboard", "Dashboard", "Resumen general del sistema", f"/?section=dashboard{workspace_query}", "", False),
+        ("status", "Status", "Lectura del estado global", f"/?section=status{workspace_query}", "", False),
+        ("board", "Board", "Estado del backlog activo", f"/?section=board{workspace_query}", "", False),
+        ("current-task", "Current Task", "Tarea operativa en curso", f"/?section=current-task{workspace_query}", "", False),
+        ("documents", "Documents", "Listado de artefactos del workspace activo", f"/?section=documents{workspace_query}", document_submenu, True),
+        ("developers", "Developers", "Perfiles reutilizables detectados", f"/?section=developers{workspace_query}", developer_submenu, True),
+    ]
+    return "".join(
+        _render_primary_menu_item(identifier, label, description, href, submenu, collapsible, current_section, icons.get(identifier, "•"))
+        for identifier, label, description, href, submenu, collapsible in items
+    )
+
+
+def _render_primary_menu_item(
+    identifier: str,
+    label: str,
+    description: str,
+    href: str,
+    submenu: str,
+    collapsible: bool,
+    current_section: str,
+    icon: str,
+) -> str:
+    if not collapsible:
+        return (
+            '<div class="home-menu-group">'
+            f'<a class="home-menu-link{" active" if current_section == identifier else ""}" href="{href}"><span class="home-menu-icon" aria-hidden="true">{html.escape(icon)}</span><span class="home-menu-copy"><strong>{html.escape(label)}</strong></span></a>'
+            "</div>"
+        )
+    is_open = current_section == identifier
+    return (
+        f'<details class="home-menu-group collapsible"{" open" if is_open else ""}>'
+        f'<summary class="home-menu-summary"><span class="home-menu-summary-icon" aria-hidden="true">{html.escape(icon)}</span><span class="home-menu-copy"><strong>{html.escape(label)}</strong></span></summary>'
+        f'<div class="home-submenu">{submenu}</div>'
+        "</details>"
+    )
+
+
 def _render_developers(developers: list[DeveloperProfile]) -> str:
     if not developers:
         return (
@@ -2888,12 +3407,139 @@ def _render_documents(workspace_name: str, documents: list[IteraSpecDocument]) -
     )
 
 
-def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path) -> str:
-    workspace_count = len(workspaces)
-    document_count = sum(len(workspace.documents) for workspace in workspaces)
-    developer_count = len(discover_developers(iteraspec_root))
+def _render_home_board_section(workspace: IteraSpecWorkspace | None, iteraspec_root: Path) -> str:
+    if workspace is None:
+        return "<article class=\"home-panel\"><h3>Sin workspace activo</h3><p>No hay un workspace disponible para leer el board.</p></article>"
+    board_doc_name = _preferred_board_document(workspace)
+    board_doc_label = "board.md" if board_doc_name == "board.md" else "backlog.md"
+    stats = _read_board_stats(workspace.name, iteraspec_root)
+    max_backlog_value = max(stats.values(), default=0)
+    rows = "".join(
+        _render_backlog_bar(key, label, stats.get(label, 0), max_backlog_value)
+        for key, label in BACKLOG_SECTION_ORDER
+    ) or "<p class=\"muted\">No se detectaron estados de backlog.</p>"
+    return (
+        "<article class=\"overview-card\">"
+        f"<p class=\"section-kicker\">{html.escape(_workspace_label(workspace.name))}</p>"
+        f"<h2>{html.escape(board_doc_label)}</h2>"
+        f"<div class=\"mini-status-grid\">{rows}</div>"
+        f"<a class=\"primary-link\" href=\"/workspaces/{workspace.name}/documents/{board_doc_name}\">Abrir {html.escape(board_doc_label)}</a>"
+        "</article>"
+    )
+
+
+def _render_home_current_task_section(workspace: IteraSpecWorkspace | None, iteraspec_root: Path) -> str:
+    if workspace is None:
+        return "<article class=\"home-panel\"><h3>Sin tarea activa</h3><p>No hay workspace activo para consultar <code>current_task.md</code>.</p></article>"
+    current_task = _read_current_task_snapshot(workspace.name, iteraspec_root)
+    if current_task is None:
+        return (
+            "<article class=\"home-panel\">"
+            f"<h3>{html.escape(_workspace_label(workspace.name))}</h3>"
+            "<p>No existe una tarea activa detectable en este workspace.</p>"
+            "</article>"
+        )
+    assignees = [name.strip() for name in current_task["assignees"].split(",") if name.strip()]
+    return (
+        "<article class=\"dashboard-focus-card\">"
+        f"<p class=\"section-kicker\">{html.escape(_workspace_label(workspace.name))}</p>"
+        f"<h3>{html.escape(current_task['title'])}</h3>"
+        "<div class=\"task-pill-group\">"
+        f'<a class="task-pill" href="{task_detail_href(workspace.name, current_task["identifier"])}">{html.escape(current_task["identifier"])}</a>'
+        f'<a class="task-pill" href="{requirement_detail_href(workspace.name, current_task["requirement"])}">{html.escape(current_task["requirement"])}</a>'
+        "</div>"
+        f"{render_assignee_chips(assignees)}"
+        f"<p>{html.escape(current_task['objective'])}</p>"
+        f"<a class=\"primary-link\" href=\"/workspaces/{workspace.name}/documents/current_task.md\">Abrir tarea activa</a>"
+        "</article>"
+    )
+
+
+def _render_home_documents_section(workspace: IteraSpecWorkspace | None) -> str:
+    if workspace is None:
+        return "<article class=\"home-panel\"><h3>Sin documentos</h3><p>No hay un workspace activo para mostrar accesos rápidos.</p></article>"
+    return (
+        "<div class=\"workspace-grid\">"
+        "<article class=\"workspace-card\">"
+        f"<header><h2>{html.escape(_workspace_label(workspace.name))}</h2>"
+        f"<p>{html.escape(workspace.relative_path)}</p></header>"
+        f"<ul class=\"documents-panel-list\">{_render_documents(workspace.name, workspace.documents)}</ul>"
+        "</article>"
+        "</div>"
+    )
+
+
+def _render_home_status_section(iteraspec_root: Path) -> str:
+    status_content = _read_global_status_content(iteraspec_root)
+    if status_content is None:
+        return "<article class=\"home-panel\"><h3>Sin status global</h3><p>No se detectó <code>status.md</code> en la instalación actual.</p></article>"
+    return render_status_view(status_content)
+
+
+def _resolve_workspace_for_section(
+    workspaces: list[IteraSpecWorkspace],
+    active_workspace: IteraSpecWorkspace | None,
+    selected_workspace_name: str,
+) -> IteraSpecWorkspace | None:
+    if selected_workspace_name:
+        selected = next((workspace for workspace in workspaces if workspace.name == selected_workspace_name), None)
+        if selected is not None:
+            return selected
+    return active_workspace
+
+
+def _render_home_section_content(
+    current_section: str,
+    workspaces: list[IteraSpecWorkspace],
+    developers: list[DeveloperProfile],
+    iteraspec_root: Path,
+    focus_workspace: IteraSpecWorkspace | None,
+) -> tuple[str, str, str]:
+    if current_section == "board":
+        return (
+            "Board",
+            "Estado del backlog del workspace actualmente enfocado.",
+            _render_home_board_section(focus_workspace, iteraspec_root),
+        )
+    if current_section == "current-task":
+        return (
+            "Current Task",
+            "Foco operativo en la tarea activa del workspace actual.",
+            _render_home_current_task_section(focus_workspace, iteraspec_root),
+        )
+    if current_section == "documents":
+        return (
+            "Documents",
+            "Listado de artefactos del workspace activo o seleccionado.",
+            _render_home_documents_section(focus_workspace),
+        )
+    if current_section == "developers":
+        return (
+            "Developers",
+            "Perfiles reutilizables disponibles en el proyecto.",
+            f'<div class="workspace-grid">{_render_developers(developers)}</div>',
+        )
+    if current_section == "status":
+        return (
+            "Status",
+            "Lectura del estado global persistido en status.md.",
+            _render_home_status_section(iteraspec_root),
+        )
+    focused_label = _workspace_label(focus_workspace.name) if focus_workspace is not None else "Sin workspace activo"
+    return (
+        f"Dashboard de {focused_label}",
+        f"Resumen operativo del workspace {focused_label}.",
+        _render_dashboard(workspaces, iteraspec_root, focus_workspace),
+    )
+
+
+def _render_dashboard(
+    workspaces: list[IteraSpecWorkspace],
+    iteraspec_root: Path,
+    focus_workspace: IteraSpecWorkspace | None = None,
+) -> str:
     global_workspace = next((workspace for workspace in workspaces if workspace.name == GLOBAL_WORKSPACE_NAME), None)
-    active_workspace = _resolve_active_workspace(workspaces, iteraspec_root)
+    active_workspace = focus_workspace or _resolve_active_workspace(workspaces, iteraspec_root)
     active_name = active_workspace.name if active_workspace else "Sin workspace"
     active_label = _workspace_label(active_name)
 
@@ -2943,28 +3589,6 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
     )
 
     return f"""
-      <section class="dashboard-grid">
-        <article class="metric-card">
-          <span class="metric-label">Workspaces</span>
-          <strong>{workspace_count}</strong>
-          <p>Features detectadas dentro de <code>.iteraspec/workspaces/</code>.</p>
-        </article>
-        <article class="metric-card">
-          <span class="metric-label">Documentos</span>
-          <strong>{document_count}</strong>
-          <p>Artefactos Markdown disponibles para visualización.</p>
-        </article>
-        <article class="metric-card">
-          <span class="metric-label">Developers</span>
-          <strong>{developer_count}</strong>
-          <p>Perfiles reutilizables detectados en <code>.iteraspec/developers/</code>.</p>
-        </article>
-        <article class="metric-card">
-          <span class="metric-label">Workspace Activo</span>
-          <strong>{escaped_active_name}</strong>
-          <p>Resumen operativo prioritario en la portada.</p>
-        </article>
-      </section>
       <section class="overview-grid">
         <article class="overview-card">
           <p class="section-kicker">Workspace Prioritario</p>
@@ -3038,6 +3662,14 @@ def _resolve_active_workspace(
     return next(iter(workspace_map.values()))
 
 
+def _read_global_status_content(iteraspec_root: Path) -> str | None:
+    try:
+        loaded = read_workspace_document(GLOBAL_WORKSPACE_NAME, "status.md", iteraspec_root)
+    except (DocumentNotFoundError, InvalidDocumentRequestError):
+        return None
+    return loaded.content
+
+
 def _read_board_stats(workspace_name: str, iteraspec_root: Path) -> dict[str, int]:
     try:
         loaded = read_workspace_document(workspace_name, "board.md", iteraspec_root)
@@ -3080,8 +3712,8 @@ def _render_task_page(
     tasks_by_id: dict[str, BacklogTask],
 ) -> str:
     project_title = infer_project_title(resolve_iteraspec_root())
+    developers = discover_developers(resolve_iteraspec_root())
     identifier, summary = split_task_title(task.title)
-    navigation = _render_sidebar(workspaces, workspace_name, "backlog.md")
     theme_switcher = render_theme_switcher()
     detail_markup = render_task_detail(task, workspace_name)
     note_panel = (
@@ -3124,28 +3756,18 @@ def _render_task_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="reader-shell">
-      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
-      <aside class="sidebar">
-        <a class="home-link" href="/">{html.escape(project_title)}</a>
-        <p class="sidebar-kicker">Documentos</p>
-        {navigation}
-      </aside>
-      <section class="document-panel">
-        <div class="document-toolbar">
-          <div class="toolbar-actions">{theme_switcher}</div>
-          <label class="sidebar-toggle" for="sidebar-toggle"></label>
-        </div>
+    <main class="home-app-shell">
+      {_render_primary_sidebar(project_title, theme_switcher, "documents", workspaces, developers, workspace_name, "backlog.md", "")}
+      <section class="home-content">
+        <article class="document-panel">
         <header class="document-header">
-          <p class="eyebrow">Detalle de tarea</p>
           <h1>{html.escape(summary)}</h1>
-          <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(workspace_name))}</code></p>
           <div class="task-pill-group">
             {f'<a class="task-pill" href="{task_detail_href(workspace_name, identifier)}">{html.escape(identifier)}</a>' if identifier else ''}
             {f'<a class="task-pill" href="{requirement_detail_href(workspace_name, task.requirement_id)}">{html.escape(task.requirement_id)}</a>' if task.requirement_id else ''}
           </div>
         </header>
-        <article class="markdown-body">
+        <section class="markdown-body">
           <div class="specialized-view current-task-view">
             <section class="task-grid">
               {state_panel}
@@ -3158,6 +3780,7 @@ def _render_task_page(
               {detail_markup}
             </section>
           </div>
+        </section>
         </article>
       </section>
     </main>
@@ -3175,7 +3798,7 @@ def _render_requirement_page(
     related_tasks: list[BacklogTask],
 ) -> str:
     project_title = infer_project_title(resolve_iteraspec_root())
-    navigation = _render_sidebar(workspaces, workspace_name, "specs.md")
+    developers = discover_developers(resolve_iteraspec_root())
     theme_switcher = render_theme_switcher()
     requirement_title = split_requirement_title(section_title, requirement_id)
     related_markup = "".join(
@@ -3199,27 +3822,17 @@ def _render_requirement_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="reader-shell">
-      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
-      <aside class="sidebar">
-        <a class="home-link" href="/">{html.escape(project_title)}</a>
-        <p class="sidebar-kicker">Documentos</p>
-        {navigation}
-      </aside>
-      <section class="document-panel">
-        <div class="document-toolbar">
-          <div class="toolbar-actions">{theme_switcher}</div>
-          <label class="sidebar-toggle" for="sidebar-toggle"></label>
-        </div>
+    <main class="home-app-shell">
+      {_render_primary_sidebar(project_title, theme_switcher, "documents", workspaces, developers, workspace_name, "specs.md", "")}
+      <section class="home-content">
+        <article class="document-panel">
         <header class="document-header">
-          <p class="eyebrow">Detalle de requerimiento</p>
           <h1>{html.escape(requirement_title)}</h1>
-          <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(workspace_name))}</code></p>
           <div class="task-pill-group">
             <a class="task-pill" href="{requirement_detail_href(workspace_name, requirement_id)}">{html.escape(requirement_id)}</a>
           </div>
         </header>
-        <article class="markdown-body">
+        <section class="markdown-body">
           <div class="specialized-view current-task-view">
             <section class="task-grid">
               <article class="task-modal-panel">
@@ -3232,6 +3845,7 @@ def _render_requirement_page(
               {render_markdown(section_content, workspace_name)}
             </section>
           </div>
+        </section>
         </article>
       </section>
     </main>
@@ -3248,7 +3862,7 @@ def _render_document_page(
     iteraspec_root: Path,
 ) -> str:
     project_title = infer_project_title(resolve_iteraspec_root())
-    navigation = _render_sidebar(workspaces, current_workspace_name, current_document_name)
+    developers = discover_developers(resolve_iteraspec_root())
     theme_switcher = render_theme_switcher()
     article = (
         render_specialized_document(
@@ -3269,25 +3883,16 @@ def _render_document_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="reader-shell">
-      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
-      <aside class="sidebar">
-        <a class="home-link" href="/">{html.escape(project_title)}</a>
-        <p class="sidebar-kicker">Documentos</p>
-        {navigation}
-      </aside>
-      <section class="document-panel">
-        <div class="document-toolbar">
-          <div class="toolbar-actions">{theme_switcher}</div>
-          <label class="sidebar-toggle" for="sidebar-toggle"></label>
-        </div>
+    <main class="home-app-shell">
+      {_render_primary_sidebar(project_title, theme_switcher, "status" if current_document_name == "status.md" else "documents", workspaces, developers, current_workspace_name, current_document_name, "")}
+      <section class="home-content">
+        <article class="document-panel">
         <header class="document-header">
-          <p class="eyebrow">Desarrollado con IteraSpec</p>
           <h1>{html.escape(current_document_name)}</h1>
-          <p class="lede">Workspace activo: <code>{html.escape(_workspace_label(current_workspace_name))}</code></p>
         </header>
-        <article class="markdown-body">
+        <section class="markdown-body">
           {article}
+        </section>
         </article>
       </section>
     </main>
@@ -3301,7 +3906,6 @@ def _render_developer_index_page(
     developers: list[DeveloperProfile],
 ) -> str:
     project_title = infer_project_title(resolve_iteraspec_root())
-    navigation = _render_sidebar(workspaces, "", "", "")
     theme_switcher = render_theme_switcher()
     developer_markup = _render_developers(developers)
     return f"""<!doctype html>
@@ -3314,26 +3918,17 @@ def _render_developer_index_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="reader-shell">
-      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
-      <aside class="sidebar">
-        <a class="home-link" href="/">{html.escape(project_title)}</a>
-        <p class="sidebar-kicker">Documentos</p>
-        {navigation}
-      </aside>
-      <section class="document-panel">
-        <div class="document-toolbar">
-          <div class="toolbar-actions">{theme_switcher}</div>
-          <label class="sidebar-toggle" for="sidebar-toggle"></label>
-        </div>
+    <main class="home-app-shell">
+      {_render_primary_sidebar(project_title, theme_switcher, "developers", workspaces, developers, "", "", "")}
+      <section class="home-content">
+        <article class="document-panel">
         <header class="document-header">
-          <p class="eyebrow">Developer Staff</p>
           <h1>Perfiles reutilizables</h1>
-          <p class="lede">Catálogo detectado en <code>.iteraspec/developers/</code>.</p>
         </header>
         <section class="workspace-grid">
           {developer_markup}
         </section>
+        </article>
       </section>
     </main>
     {THEME_BEHAVIOR_SCRIPT}
@@ -3347,8 +3942,8 @@ def _render_developer_page(
     content: str,
 ) -> str:
     project_title = infer_project_title(resolve_iteraspec_root())
-    navigation = _render_sidebar(workspaces, "", "", developer.filename)
     theme_switcher = render_theme_switcher()
+    developers = discover_developers(resolve_iteraspec_root())
     stacks = render_assignee_chips(developer.primary_stacks) if developer.primary_stacks else '<p class="muted">Sin stacks declarados.</p>'
     article = render_markdown(content)
     return f"""<!doctype html>
@@ -3361,28 +3956,18 @@ def _render_developer_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="reader-shell">
-      <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
-      <aside class="sidebar">
-        <a class="home-link" href="/">{html.escape(project_title)}</a>
-        <p class="sidebar-kicker">Documentos</p>
-        {navigation}
-      </aside>
-      <section class="document-panel">
-        <div class="document-toolbar">
-          <div class="toolbar-actions">{theme_switcher}</div>
-          <label class="sidebar-toggle" for="sidebar-toggle"></label>
-        </div>
+    <main class="home-app-shell">
+      {_render_primary_sidebar(project_title, theme_switcher, "developers", workspaces, developers, "", "", developer.filename)}
+      <section class="home-content">
+        <article class="document-panel">
         <header class="document-header">
-          <p class="eyebrow">Developer Profile</p>
           <h1>{html.escape(developer.display_name)}</h1>
-          <p class="lede">{html.escape(developer.role)} · {html.escape(developer.specialty)}</p>
           <div class="task-pill-group">
             <div class="task-pill">{html.escape(developer.seniority)}</div>
             <div class="task-pill">{html.escape(developer.active)}</div>
           </div>
         </header>
-        <article class="markdown-body">
+        <section class="markdown-body">
           <div class="specialized-view current-task-view">
             <section class="task-grid">
               <article class="task-panel">
@@ -3399,6 +3984,7 @@ def _render_developer_page(
               {article}
             </section>
           </div>
+        </section>
         </article>
       </section>
     </main>
