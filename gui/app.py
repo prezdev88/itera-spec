@@ -121,6 +121,18 @@ code {
   min-height: 100vh;
 }
 
+.home-nav-toggle {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-nav-overlay,
+.home-mobile-bar,
+.home-nav-close {
+  display: none;
+}
+
 .home-sidebar {
   display: grid;
   align-content: start;
@@ -141,6 +153,13 @@ code {
   display: grid;
   gap: 12px;
   padding: 0 4px 4px;
+}
+
+.home-sidebar-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .home-title {
@@ -346,6 +365,33 @@ code {
   gap: 14px;
   padding: 16px 18px 22px;
   min-width: 0;
+}
+
+.home-nav-button,
+.home-nav-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  background: var(--sidebar-surface);
+  color: var(--sidebar-text);
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.home-nav-button:hover,
+.home-nav-button:focus-visible,
+.home-nav-close:hover,
+.home-nav-close:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--menu-active-border);
+  color: var(--sidebar-text);
 }
 
 .home-hero {
@@ -1535,23 +1581,132 @@ code {
   font-size: 0.95em;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .home-app-shell {
     grid-template-columns: 1fr;
   }
 
-  .home-sidebar,
-  .home-content {
-    padding: 20px;
+  .home-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 40;
+    width: min(86vw, 360px);
+    min-height: 100vh;
+    max-height: 100vh;
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
   }
 
-  .home-hero {
-    padding: 22px 20px;
+  .home-app-shell:has(.home-nav-toggle:checked) .home-sidebar {
+    transform: translateX(0);
+  }
+
+  .home-nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(5, 8, 22, 0.46);
+  }
+
+  .home-app-shell:has(.home-nav-toggle:checked) .home-nav-overlay {
+    display: block;
+  }
+
+  .home-content {
+    padding: 16px;
+  }
+
+  .home-mobile-bar {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 4px;
+  }
+
+  .home-nav-close {
+    display: inline-flex;
+  }
+
+  .home-nav-button {
+    background: var(--surface-solid);
+    color: var(--text);
+  }
+
+  .home-nav-button:hover,
+  .home-nav-button:focus-visible {
+    background: var(--surface-muted);
+    color: var(--text);
   }
 
   .stack-grid.two,
   .stack-grid.three {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-sidebar-header {
+    gap: 10px;
+    padding: 0;
+  }
+
+  .home-sidebar-topline {
+    align-items: flex-start;
+  }
+
+  .home-title {
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+  }
+
+  .home-workspace-picker {
+    gap: 6px;
+    padding-bottom: 10px;
+  }
+
+  .home-workspace-select {
+    padding: 13px 42px 13px 12px;
+    font-size: 0.98rem;
+  }
+
+  .home-menu-link,
+  .home-menu-summary {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+    padding: 13px 12px;
+  }
+
+  .home-menu-icon,
+  .home-menu-summary-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 1.05rem;
+  }
+
+  .home-submenu {
+    padding-left: 14px;
+  }
+
+  .home-submenu-link {
+    padding: 11px 10px;
+    font-size: 0.95rem;
+  }
+
+  .home-content {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .home-hero {
+    padding: 16px 14px;
+  }
+
+  .home-hero h1 {
+    font-size: clamp(1.7rem, 10vw, 2.4rem);
+    line-height: 0.95;
   }
 
   .shell {
@@ -1595,11 +1750,32 @@ code {
   }
 
   .document-panel {
-    padding: 26px 22px;
+    padding: 20px 16px;
   }
 
   .lede {
     font-size: 1rem;
+  }
+
+  .document-header {
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+  }
+
+  .markdown-body {
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  .overview-card,
+  .dashboard-focus-card,
+  .workspace-card,
+  .empty-state,
+  .home-panel,
+  .task-panel,
+  .task-modal-panel,
+  .focus-card {
+    padding: 16px;
   }
 }
 """
@@ -3229,17 +3405,10 @@ def _render_home_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="home-app-shell">
-      {_render_primary_sidebar(project_title, theme_switcher, normalized_section, workspaces, developers, focus_workspace.name if focus_workspace else "", "", "")}
-      <section class="home-content">
-        <header class="home-hero">
-          <h1>{html.escape(section_title)}</h1>
-        </header>
-        <section class="home-section">
-          {section_markup}
-        </section>
-      </section>
-    </main>
+    {_render_app_shell(
+        _render_primary_sidebar(project_title, theme_switcher, normalized_section, workspaces, developers, focus_workspace.name if focus_workspace else "", "", ""),
+        f'<header class="home-hero"><h1>{html.escape(section_title)}</h1></header><section class="home-section">{section_markup}</section>'
+    )}
     {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
@@ -3259,7 +3428,10 @@ def _render_primary_sidebar(
     return (
         "<aside class=\"home-sidebar\">"
         "<div class=\"home-sidebar-header\">"
+        "<div class=\"home-sidebar-topline\">"
         f"<h1 class=\"home-title\">{html.escape(project_title)}</h1>"
+        '<label for="home-nav-toggle" class="home-nav-close" aria-label="Cerrar menu">×</label>'
+        "</div>"
         f"<div class=\"toolbar-actions\">{theme_switcher}</div>"
         "</div>"
         f"{workspace_picker}"
@@ -3267,6 +3439,22 @@ def _render_primary_sidebar(
         f"{_render_primary_menu(current_section, workspaces, developers, current_workspace_name, current_document_name, current_developer_name)}"
         "</nav>"
         "</aside>"
+    )
+
+
+def _render_app_shell(sidebar: str, content: str) -> str:
+    return (
+        '<main class="home-app-shell">'
+        '<input id="home-nav-toggle" class="home-nav-toggle" type="checkbox">'
+        '<label for="home-nav-toggle" class="home-nav-overlay" aria-label="Cerrar menu"></label>'
+        f"{sidebar}"
+        '<section class="home-content">'
+        '<div class="home-mobile-bar">'
+        '<label for="home-nav-toggle" class="home-nav-button" aria-label="Abrir menu">☰</label>'
+        "</div>"
+        f"{content}"
+        "</section>"
+        "</main>"
     )
 
 
@@ -3756,10 +3944,9 @@ def _render_task_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="home-app-shell">
-      {_render_primary_sidebar(project_title, theme_switcher, "documents", workspaces, developers, workspace_name, "backlog.md", "")}
-      <section class="home-content">
-        <article class="document-panel">
+    {_render_app_shell(
+      _render_primary_sidebar(project_title, theme_switcher, "documents", workspaces, developers, workspace_name, "backlog.md", ""),
+      f"""<article class="document-panel">
         <header class="document-header">
           <h1>{html.escape(summary)}</h1>
           <div class="task-pill-group">
@@ -3781,9 +3968,8 @@ def _render_task_page(
             </section>
           </div>
         </section>
-        </article>
-      </section>
-    </main>
+        </article>"""
+    )}
     {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
@@ -3822,10 +4008,9 @@ def _render_requirement_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="home-app-shell">
-      {_render_primary_sidebar(project_title, theme_switcher, "documents", workspaces, developers, workspace_name, "specs.md", "")}
-      <section class="home-content">
-        <article class="document-panel">
+    {_render_app_shell(
+      _render_primary_sidebar(project_title, theme_switcher, "documents", workspaces, developers, workspace_name, "specs.md", ""),
+      f"""<article class="document-panel">
         <header class="document-header">
           <h1>{html.escape(requirement_title)}</h1>
           <div class="task-pill-group">
@@ -3846,9 +4031,8 @@ def _render_requirement_page(
             </section>
           </div>
         </section>
-        </article>
-      </section>
-    </main>
+        </article>"""
+    )}
     {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
@@ -3883,19 +4067,17 @@ def _render_document_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="home-app-shell">
-      {_render_primary_sidebar(project_title, theme_switcher, "status" if current_document_name == "status.md" else "documents", workspaces, developers, current_workspace_name, current_document_name, "")}
-      <section class="home-content">
-        <article class="document-panel">
+    {_render_app_shell(
+      _render_primary_sidebar(project_title, theme_switcher, "status" if current_document_name == "status.md" else "documents", workspaces, developers, current_workspace_name, current_document_name, ""),
+      f"""<article class="document-panel">
         <header class="document-header">
           <h1>{html.escape(current_document_name)}</h1>
         </header>
         <section class="markdown-body">
           {article}
         </section>
-        </article>
-      </section>
-    </main>
+        </article>"""
+    )}
     {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
@@ -3918,19 +4100,17 @@ def _render_developer_index_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="home-app-shell">
-      {_render_primary_sidebar(project_title, theme_switcher, "developers", workspaces, developers, "", "", "")}
-      <section class="home-content">
-        <article class="document-panel">
+    {_render_app_shell(
+      _render_primary_sidebar(project_title, theme_switcher, "developers", workspaces, developers, "", "", ""),
+      f"""<article class="document-panel">
         <header class="document-header">
           <h1>Perfiles reutilizables</h1>
         </header>
         <section class="workspace-grid">
           {developer_markup}
         </section>
-        </article>
-      </section>
-    </main>
+        </article>"""
+    )}
     {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
@@ -3956,10 +4136,9 @@ def _render_developer_page(
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <main class="home-app-shell">
-      {_render_primary_sidebar(project_title, theme_switcher, "developers", workspaces, developers, "", "", developer.filename)}
-      <section class="home-content">
-        <article class="document-panel">
+    {_render_app_shell(
+      _render_primary_sidebar(project_title, theme_switcher, "developers", workspaces, developers, "", "", developer.filename),
+      f"""<article class="document-panel">
         <header class="document-header">
           <h1>{html.escape(developer.display_name)}</h1>
           <div class="task-pill-group">
@@ -3985,9 +4164,8 @@ def _render_developer_page(
             </section>
           </div>
         </section>
-        </article>
-      </section>
-    </main>
+        </article>"""
+    )}
     {THEME_BEHAVIOR_SCRIPT}
   </body>
 </html>"""
