@@ -92,7 +92,7 @@ code {
 }
 
 .shell {
-  width: min(960px, calc(100% - 32px));
+  width: min(1280px, calc(100% - 32px));
   margin: 0 auto;
   padding: 48px 0 80px;
 }
@@ -107,12 +107,6 @@ code {
 
 .shell-toolbar {
   margin-bottom: 18px;
-}
-
-.hero-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr);
-  gap: 18px;
 }
 
 .hero {
@@ -145,47 +139,6 @@ h1 {
   color: var(--muted);
   font-size: 1.15rem;
   line-height: 1.7;
-}
-
-.status-card {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 32px;
-  padding: 18px 22px;
-  border-radius: 18px;
-  background: rgba(15, 118, 110, 0.1);
-  border: 1px solid rgba(15, 118, 110, 0.18);
-}
-
-.status-label {
-  color: var(--accent-strong);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.brand-panel {
-  padding: 28px;
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  background:
-    linear-gradient(160deg, rgba(15, 118, 110, 0.16), color-mix(in srgb, var(--surface-muted) 88%, transparent)),
-    var(--panel);
-  box-shadow: var(--shadow);
-}
-
-.brand-panel h2 {
-  margin: 8px 0 12px;
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  line-height: 1.05;
-}
-
-.brand-panel p:last-child {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.65;
 }
 
 .dashboard-grid,
@@ -227,6 +180,8 @@ h1 {
   margin-top: 14px;
   font-size: clamp(2rem, 5vw, 3rem);
   line-height: 0.95;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .metric-card p,
@@ -535,9 +490,52 @@ h1 {
   border-top: 1px solid var(--track);
 }
 
+.sidebar-workspace {
+  display: grid;
+  gap: 10px;
+}
+
+.sidebar-workspace summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.sidebar-workspace summary::-webkit-details-marker {
+  display: none;
+}
+
+.sidebar-workspace summary:hover,
+.sidebar-workspace[open] summary {
+  background: rgba(15, 118, 110, 0.08);
+}
+
 .sidebar-workspace h2 {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 1rem;
+}
+
+.sidebar-workspace-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.sidebar-workspace-count::before {
+  content: "▸";
+  color: var(--accent-strong);
+  transition: transform 160ms ease;
+}
+
+.sidebar-workspace[open] .sidebar-workspace-count::before {
+  transform: rotate(90deg);
 }
 
 .sidebar-workspace ul {
@@ -1189,10 +1187,6 @@ code {
     padding-top: 24px;
   }
 
-  .hero-shell {
-    grid-template-columns: 1fr;
-  }
-
   .status-hero {
     grid-template-columns: 1fr;
   }
@@ -1378,6 +1372,7 @@ class InvalidDocumentRequestError(Exception):
 def create_app() -> FastAPI:
     app = FastAPI(title="IteraSpec GUI Viewer")
     iteraspec_root = resolve_iteraspec_root()
+    project_title = infer_project_title(iteraspec_root)
 
     @app.get("/styles.css")
     async def stylesheet() -> Response:
@@ -1390,14 +1385,13 @@ def create_app() -> FastAPI:
         workspace_markup = _render_workspaces(workspaces)
         developer_markup = _render_developers(developers)
         dashboard_markup = _render_dashboard(workspaces, iteraspec_root)
-        status_title = "Visualizador read-only"
         theme_switcher = render_theme_switcher()
         return """<!doctype html>
 <html lang="es">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>IteraSpec GUI Viewer</title>
+    <title>__PROJECT_TITLE__</title>
     __THEME_BOOTSTRAP__
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -1406,27 +1400,8 @@ def create_app() -> FastAPI:
       <section class="shell-toolbar">
         <div class="toolbar-actions">__THEME_SWITCHER__</div>
       </section>
-      <section class="hero-shell">
       <section class="hero">
-        <p class="eyebrow">Desarrollado con IteraSpec</p>
-        <h1>IteraSpec GUI Viewer</h1>
-        <p class="lede">
-          Un dashboard visual para recorrer especificaciones, backlog y contexto activo de
-          <code>.iteraspec/workspaces/</code> sin leer Markdown plano.
-        </p>
-        <div class="status-card">
-          <span class="status-label">Modo</span>
-          <strong>__STATUS__</strong>
-        </div>
-      </section>
-      <aside class="brand-panel">
-        <p class="section-kicker">Built With IteraSpec</p>
-        <h2>Una capa visual autocontenida sobre el flujo IteraSpec.</h2>
-        <p>
-          Este GUI existe para hacer visible el estado del proyecto, no para modificarlo.
-          La fuente de verdad sigue estando en los artefactos Markdown del protocolo.
-        </p>
-      </aside>
+        <h1>__PROJECT_TITLE__</h1>
       </section>
       __DASHBOARD__
       <section class="inventory">
@@ -1446,7 +1421,7 @@ def create_app() -> FastAPI:
     </main>
     __THEME_BEHAVIOR__
   </body>
-</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DEVELOPERS__", developer_markup).replace("__DASHBOARD__", dashboard_markup).replace("__STATUS__", status_title).replace("__THEME_SWITCHER__", theme_switcher).replace("__THEME_BOOTSTRAP__", THEME_BOOTSTRAP_SCRIPT).replace("__THEME_BEHAVIOR__", THEME_BEHAVIOR_SCRIPT)
+</html>""".replace("__WORKSPACES__", workspace_markup).replace("__DEVELOPERS__", developer_markup).replace("__DASHBOARD__", dashboard_markup).replace("__PROJECT_TITLE__", html.escape(project_title)).replace("__THEME_SWITCHER__", theme_switcher).replace("__THEME_BOOTSTRAP__", THEME_BOOTSTRAP_SCRIPT).replace("__THEME_BEHAVIOR__", THEME_BEHAVIOR_SCRIPT)
 
     @app.get("/api/workspaces")
     async def workspaces() -> dict[str, object]:
@@ -1605,6 +1580,14 @@ def resolve_iteraspec_root() -> Path:
     if embedded_root.name == ".iteraspec":
         return embedded_root
     return script_dir.parent.joinpath(".iteraspec")
+
+
+def infer_project_title(iteraspec_root: Path) -> str:
+    project_root = iteraspec_root.parent if iteraspec_root.name == ".iteraspec" else iteraspec_root
+    name = project_root.name.strip()
+    if not name:
+        return "Proyecto"
+    return re.sub(r"[-_]+", " ", name).strip().title()
 
 
 def discover_workspaces(base_dir: Path | None = None) -> list[IteraSpecWorkspace]:
@@ -2910,7 +2893,7 @@ def _render_dashboard(workspaces: list[IteraSpecWorkspace], iteraspec_root: Path
     document_count = sum(len(workspace.documents) for workspace in workspaces)
     developer_count = len(discover_developers(iteraspec_root))
     global_workspace = next((workspace for workspace in workspaces if workspace.name == GLOBAL_WORKSPACE_NAME), None)
-    active_workspace = next((workspace for workspace in workspaces if workspace.name != GLOBAL_WORKSPACE_NAME), None)
+    active_workspace = _resolve_active_workspace(workspaces, iteraspec_root)
     active_name = active_workspace.name if active_workspace else "Sin workspace"
     active_label = _workspace_label(active_name)
 
@@ -3036,6 +3019,25 @@ def _preferred_board_document(workspace: IteraSpecWorkspace | None) -> str:
     return "board.md" if "board.md" in available else "backlog.md"
 
 
+def _resolve_active_workspace(
+    workspaces: list[IteraSpecWorkspace],
+    iteraspec_root: Path,
+) -> IteraSpecWorkspace | None:
+    workspace_map = {workspace.name: workspace for workspace in workspaces if workspace.name != GLOBAL_WORKSPACE_NAME}
+    if not workspace_map:
+        return None
+    try:
+        loaded = read_workspace_document(GLOBAL_WORKSPACE_NAME, "status.md", iteraspec_root)
+    except (DocumentNotFoundError, InvalidDocumentRequestError):
+        loaded = None
+    if loaded is not None:
+        status_map = dict(parse_status_key_values(loaded.content))
+        active_feature = status_map.get("Active Feature", "").strip().strip("`")
+        if active_feature in workspace_map:
+            return workspace_map[active_feature]
+    return next(iter(workspace_map.values()))
+
+
 def _read_board_stats(workspace_name: str, iteraspec_root: Path) -> dict[str, int]:
     try:
         loaded = read_workspace_document(workspace_name, "board.md", iteraspec_root)
@@ -3077,6 +3079,7 @@ def _render_task_page(
     board_label: str,
     tasks_by_id: dict[str, BacklogTask],
 ) -> str:
+    project_title = infer_project_title(resolve_iteraspec_root())
     identifier, summary = split_task_title(task.title)
     navigation = _render_sidebar(workspaces, workspace_name, "backlog.md")
     theme_switcher = render_theme_switcher()
@@ -3116,7 +3119,7 @@ def _render_task_page(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{html.escape(identifier or summary)} · IteraSpec GUI Viewer</title>
+    <title>{html.escape(identifier or summary)} · {html.escape(project_title)}</title>
     {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -3124,7 +3127,7 @@ def _render_task_page(
     <main class="reader-shell">
       <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
       <aside class="sidebar">
-        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <a class="home-link" href="/">{html.escape(project_title)}</a>
         <p class="sidebar-kicker">Documentos</p>
         {navigation}
       </aside>
@@ -3171,6 +3174,7 @@ def _render_requirement_page(
     section_content: str,
     related_tasks: list[BacklogTask],
 ) -> str:
+    project_title = infer_project_title(resolve_iteraspec_root())
     navigation = _render_sidebar(workspaces, workspace_name, "specs.md")
     theme_switcher = render_theme_switcher()
     requirement_title = split_requirement_title(section_title, requirement_id)
@@ -3190,7 +3194,7 @@ def _render_requirement_page(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{html.escape(requirement_title)} · IteraSpec GUI Viewer</title>
+    <title>{html.escape(requirement_title)} · {html.escape(project_title)}</title>
     {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -3198,7 +3202,7 @@ def _render_requirement_page(
     <main class="reader-shell">
       <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
       <aside class="sidebar">
-        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <a class="home-link" href="/">{html.escape(project_title)}</a>
         <p class="sidebar-kicker">Documentos</p>
         {navigation}
       </aside>
@@ -3243,6 +3247,7 @@ def _render_document_page(
     content: str,
     iteraspec_root: Path,
 ) -> str:
+    project_title = infer_project_title(resolve_iteraspec_root())
     navigation = _render_sidebar(workspaces, current_workspace_name, current_document_name)
     theme_switcher = render_theme_switcher()
     article = (
@@ -3259,7 +3264,7 @@ def _render_document_page(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{html.escape(current_document_name)} · IteraSpec GUI Viewer</title>
+    <title>{html.escape(current_document_name)} · {html.escape(project_title)}</title>
     {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -3267,7 +3272,7 @@ def _render_document_page(
     <main class="reader-shell">
       <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
       <aside class="sidebar">
-        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <a class="home-link" href="/">{html.escape(project_title)}</a>
         <p class="sidebar-kicker">Documentos</p>
         {navigation}
       </aside>
@@ -3295,6 +3300,7 @@ def _render_developer_index_page(
     workspaces: list[IteraSpecWorkspace],
     developers: list[DeveloperProfile],
 ) -> str:
+    project_title = infer_project_title(resolve_iteraspec_root())
     navigation = _render_sidebar(workspaces, "", "", "")
     theme_switcher = render_theme_switcher()
     developer_markup = _render_developers(developers)
@@ -3303,7 +3309,7 @@ def _render_developer_index_page(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Developer Staff · IteraSpec GUI Viewer</title>
+    <title>Developer Staff · {html.escape(project_title)}</title>
     {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -3311,7 +3317,7 @@ def _render_developer_index_page(
     <main class="reader-shell">
       <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
       <aside class="sidebar">
-        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <a class="home-link" href="/">{html.escape(project_title)}</a>
         <p class="sidebar-kicker">Documentos</p>
         {navigation}
       </aside>
@@ -3340,6 +3346,7 @@ def _render_developer_page(
     developer: DeveloperProfile,
     content: str,
 ) -> str:
+    project_title = infer_project_title(resolve_iteraspec_root())
     navigation = _render_sidebar(workspaces, "", "", developer.filename)
     theme_switcher = render_theme_switcher()
     stacks = render_assignee_chips(developer.primary_stacks) if developer.primary_stacks else '<p class="muted">Sin stacks declarados.</p>'
@@ -3349,7 +3356,7 @@ def _render_developer_page(
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{html.escape(developer.display_name)} · IteraSpec GUI Viewer</title>
+    <title>{html.escape(developer.display_name)} · {html.escape(project_title)}</title>
     {THEME_BOOTSTRAP_SCRIPT}
     <link rel="stylesheet" href="/styles.css">
   </head>
@@ -3357,7 +3364,7 @@ def _render_developer_page(
     <main class="reader-shell">
       <input id="sidebar-toggle" class="sidebar-toggle-input" type="checkbox">
       <aside class="sidebar">
-        <a class="home-link" href="/">IteraSpec GUI Viewer</a>
+        <a class="home-link" href="/">{html.escape(project_title)}</a>
         <p class="sidebar-kicker">Documentos</p>
         {navigation}
       </aside>
@@ -3416,11 +3423,17 @@ def _render_sidebar(
             items.append(
                 f"<li><a class=\"{' '.join(classes)}\" href=\"/workspaces/{workspace.name}/documents/{document.name}\">{html.escape(document.name)}</a></li>"
             )
+        is_open = workspace.name == current_workspace_name and bool(current_document_name)
+        document_count = len(workspace.documents)
+        count_label = "1 documento" if document_count == 1 else f"{document_count} documentos"
         sections.append(
-            "<section class=\"sidebar-workspace\">"
+            f"<details class=\"sidebar-workspace\"{' open' if is_open else ''}>"
+            "<summary>"
             f"<h2>{html.escape(_workspace_label(workspace.name))}</h2>"
+            f"<span class=\"sidebar-workspace-count\">{html.escape(count_label)}</span>"
+            "</summary>"
             f"<ul>{''.join(items) if items else '<li class=\"muted\">Sin documentos.</li>'}</ul>"
-            "</section>"
+            "</details>"
         )
     developers = discover_developers(resolve_iteraspec_root())
     developer_items = []
