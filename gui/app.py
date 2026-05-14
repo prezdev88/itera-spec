@@ -47,7 +47,7 @@ STYLESHEET = """
   --sidebar-surface: rgba(255, 255, 255, 0.04);
   --sidebar-text: #eef4ff;
   --sidebar-muted: rgba(238, 244, 255, 0.62);
-  --hero-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 252, 0.96));
+  --hero-bg: #f8fbff;
   --hero-border: rgba(22, 33, 38, 0.08);
   --sidebar-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
   --menu-active-bg: rgba(37, 99, 235, 0.16);
@@ -79,7 +79,7 @@ STYLESHEET = """
   --sidebar-surface: rgba(255, 255, 255, 0.045);
   --sidebar-text: #eef4ff;
   --sidebar-muted: rgba(238, 244, 255, 0.64);
-  --hero-bg: linear-gradient(180deg, rgba(18, 28, 48, 0.96), rgba(12, 20, 36, 0.96));
+  --hero-bg: #121c30;
   --hero-border: rgba(170, 190, 198, 0.12);
   --sidebar-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
   --menu-active-bg: rgba(96, 165, 250, 0.14);
@@ -96,7 +96,7 @@ body {
   min-height: 100vh;
   font-family: "Avenir Next", "Segoe UI", "Noto Sans", "Helvetica Neue", sans-serif;
   color: var(--text);
-  background: linear-gradient(180deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 92%, #d9e4f6 8%) 100%);
+  background: var(--bg);
 }
 
 a {
@@ -208,13 +208,9 @@ code {
   font: inherit;
   cursor: pointer;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--sidebar-text) 50%), linear-gradient(135deg, var(--sidebar-text) 50%, transparent 50%);
-  background-position: calc(100% - 20px) calc(50% - 3px), calc(100% - 14px) calc(50% - 3px);
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
 }
 
 .home-workspace-select option {
@@ -404,12 +400,12 @@ code {
   box-shadow: var(--shadow);
 }
 
-.home-hero h1 {
+.home-hero h1,
+.document-header h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 4vw, 4rem);
-  line-height: 0.9;
-  letter-spacing: -0.05em;
-  text-transform: uppercase;
+  font-size: clamp(1.9rem, 3vw, 2.8rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   font-weight: 800;
 }
 
@@ -451,7 +447,7 @@ code {
 .home-panel {
   padding: 22px;
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 0;
   background: var(--surface-soft);
   box-shadow: var(--shadow);
 }
@@ -489,7 +485,7 @@ code {
 .hero {
   padding: 48px;
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: 0;
   background: var(--panel);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
@@ -617,7 +613,7 @@ h1 {
   display: grid;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--surface-subtle);
 }
 
@@ -648,19 +644,19 @@ h1 {
 }
 
 .mini-status-bar-fill.todo {
-  background: linear-gradient(90deg, #f87171, #dc2626);
+  background: #dc2626;
 }
 
 .mini-status-bar-fill.inprogress {
-  background: linear-gradient(90deg, #facc15, #ca8a04);
+  background: #ca8a04;
 }
 
 .mini-status-bar-fill.done {
-  background: linear-gradient(90deg, #4ade80, #16a34a);
+  background: #16a34a;
 }
 
 .mini-status-bar-fill.blocked {
-  background: linear-gradient(90deg, #6b7280, #1f2937);
+  background: #475569;
 }
 
 .inventory {
@@ -851,7 +847,7 @@ h1 {
 .sidebar,
 .document-panel {
   border: 1px solid var(--border);
-  border-radius: 28px;
+  border-radius: 0;
   background: var(--panel);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
@@ -896,7 +892,7 @@ h1 {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 0;
   cursor: pointer;
   list-style: none;
 }
@@ -942,7 +938,7 @@ h1 {
 .sidebar-doc {
   display: block;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 0;
   color: var(--muted);
   text-decoration: none;
 }
@@ -1065,7 +1061,7 @@ h1 {
 .task-panel,
 .empty-task-card {
   padding: 18px;
-  border-radius: 20px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--surface-soft);
 }
@@ -1116,11 +1112,9 @@ h1 {
   grid-template-columns: minmax(0, 1.8fr) minmax(220px, 0.8fr);
   gap: 18px;
   padding: 20px 22px;
-  border-radius: 24px;
+  border-radius: 0;
   border: 1px solid var(--border);
-  background:
-    radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 34%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 90%, transparent), color-mix(in srgb, var(--panel) 92%, transparent));
+  background: var(--surface-solid);
   box-shadow: 0 18px 40px rgba(87, 64, 30, 0.08);
 }
 
@@ -1147,7 +1141,7 @@ h1 {
   align-content: start;
   gap: 12px;
   padding: 16px 18px;
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--surface-solid);
   border: 1px solid rgba(15, 118, 110, 0.12);
 }
@@ -1197,7 +1191,7 @@ h1 {
   display: grid;
   gap: 10px;
   padding: 18px 20px;
-  border-radius: 24px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--surface-soft);
 }
@@ -1231,7 +1225,7 @@ h1 {
 
 .status-meta-card {
   padding: 16px 18px;
-  border-radius: 20px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--surface-muted);
 }
@@ -1382,7 +1376,7 @@ h1 {
   display: flex;
   width: 100%;
   padding: 16px 18px;
-  border-radius: 20px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--surface-soft);
   color: var(--text);
@@ -1476,9 +1470,9 @@ h1 {
   max-height: min(80vh, 720px);
   overflow: auto;
   padding: 24px;
-  border-radius: 28px;
+  border-radius: 0;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  background: var(--panel);
   box-shadow: 0 28px 100px rgba(17, 24, 39, 0.28);
 }
 
@@ -1501,7 +1495,7 @@ h1 {
 
 .task-modal-panel {
   padding: 18px;
-  border-radius: 20px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--surface-soft);
 }
@@ -1539,6 +1533,7 @@ h1 {
 
 .focus-card {
   padding: 24px;
+  border-radius: 0;
 }
 
 .task-pill {
@@ -1746,7 +1741,7 @@ code {
 
   .hero {
     padding: 28px 22px;
-    border-radius: 22px;
+    border-radius: 0;
   }
 
   .document-panel {
@@ -3424,7 +3419,7 @@ def _render_primary_sidebar(
     current_document_name: str,
     current_developer_name: str,
 ) -> str:
-    workspace_picker = _render_workspace_picker(current_section, workspaces, current_workspace_name)
+    workspace_picker = _render_workspace_picker(current_section, workspaces, current_workspace_name, current_document_name)
     return (
         "<aside class=\"home-sidebar\">"
         "<div class=\"home-sidebar-header\">"
@@ -3462,13 +3457,23 @@ def _render_workspace_picker(
     current_section: str,
     workspaces: list[IteraSpecWorkspace],
     current_workspace_name: str,
+    current_document_name: str,
 ) -> str:
     available = [workspace for workspace in workspaces if workspace.name != GLOBAL_WORKSPACE_NAME]
     if not available:
         return ""
     selected_workspace = current_workspace_name or available[0].name
+    def option_href(workspace: IteraSpecWorkspace) -> str:
+        if current_document_name == "status.md":
+            return f"/?section=status&workspace={quote(workspace.name)}"
+        if current_document_name in {"board.md", "backlog.md"}:
+            board_doc_name = _preferred_board_document(workspace)
+            return f"/workspaces/{quote(workspace.name)}/documents/{quote(board_doc_name)}"
+        if current_document_name and any(document.name == current_document_name for document in workspace.documents):
+            return f"/workspaces/{quote(workspace.name)}/documents/{quote(current_document_name)}"
+        return f"/?section={quote(current_section)}&workspace={quote(workspace.name)}"
     options = "".join(
-        f'<option value="/?section={quote(current_section)}&workspace={quote(workspace.name)}"{" selected" if workspace.name == selected_workspace else ""}>{html.escape(_workspace_label(workspace.name))}</option>'
+        f'<option value="{option_href(workspace)}"{" selected" if workspace.name == selected_workspace else ""}>{html.escape(_workspace_label(workspace.name))}</option>'
         for workspace in available
     )
     return (
@@ -3497,6 +3502,11 @@ def _render_primary_menu(
     }
     current_workspace = next((workspace for workspace in workspaces if workspace.name == current_workspace_name), None)
     workspace_query = f"&workspace={quote(current_workspace.name)}" if current_workspace is not None else ""
+    board_href = (
+        f"/workspaces/{current_workspace.name}/documents/{_preferred_board_document(current_workspace)}"
+        if current_workspace is not None
+        else f"/?section=board{workspace_query}"
+    )
     document_submenu = (
         '<a class="home-submenu-link{}" href="/?section=documents{}">Overview</a>'.format(
             " active" if current_section == "documents" and not current_document_name else "",
@@ -3520,13 +3530,13 @@ def _render_primary_menu(
     items = [
         ("dashboard", "Dashboard", "Resumen general del sistema", f"/?section=dashboard{workspace_query}", "", False),
         ("status", "Status", "Lectura del estado global", f"/?section=status{workspace_query}", "", False),
-        ("board", "Board", "Estado del backlog activo", f"/?section=board{workspace_query}", "", False),
+        ("board", "Board", "Estado del backlog activo", board_href, "", False),
         ("current-task", "Current Task", "Tarea operativa en curso", f"/?section=current-task{workspace_query}", "", False),
         ("documents", "Documents", "Listado de artefactos del workspace activo", f"/?section=documents{workspace_query}", document_submenu, True),
         ("developers", "Developers", "Perfiles reutilizables detectados", f"/?section=developers{workspace_query}", developer_submenu, True),
     ]
     return "".join(
-        _render_primary_menu_item(identifier, label, description, href, submenu, collapsible, current_section, icons.get(identifier, "•"))
+        _render_primary_menu_item(identifier, label, description, href, submenu, collapsible, current_section, current_document_name, icons.get(identifier, "•"))
         for identifier, label, description, href, submenu, collapsible in items
     )
 
@@ -3539,12 +3549,16 @@ def _render_primary_menu_item(
     submenu: str,
     collapsible: bool,
     current_section: str,
+    current_document_name: str,
     icon: str,
 ) -> str:
+    is_active = current_section == identifier or (
+        identifier == "board" and current_document_name in {"board.md", "backlog.md"}
+    )
     if not collapsible:
         return (
             '<div class="home-menu-group">'
-            f'<a class="home-menu-link{" active" if current_section == identifier else ""}" href="{href}"><span class="home-menu-icon" aria-hidden="true">{html.escape(icon)}</span><span class="home-menu-copy"><strong>{html.escape(label)}</strong></span></a>'
+            f'<a class="home-menu-link{" active" if is_active else ""}" href="{href}"><span class="home-menu-icon" aria-hidden="true">{html.escape(icon)}</span><span class="home-menu-copy"><strong>{html.escape(label)}</strong></span></a>'
             "</div>"
         )
     is_open = current_section == identifier
@@ -3599,21 +3613,16 @@ def _render_home_board_section(workspace: IteraSpecWorkspace | None, iteraspec_r
     if workspace is None:
         return "<article class=\"home-panel\"><h3>Sin workspace activo</h3><p>No hay un workspace disponible para leer el board.</p></article>"
     board_doc_name = _preferred_board_document(workspace)
-    board_doc_label = "board.md" if board_doc_name == "board.md" else "backlog.md"
-    stats = _read_board_stats(workspace.name, iteraspec_root)
-    max_backlog_value = max(stats.values(), default=0)
-    rows = "".join(
-        _render_backlog_bar(key, label, stats.get(label, 0), max_backlog_value)
-        for key, label in BACKLOG_SECTION_ORDER
-    ) or "<p class=\"muted\">No se detectaron estados de backlog.</p>"
-    return (
-        "<article class=\"overview-card\">"
-        f"<p class=\"section-kicker\">{html.escape(_workspace_label(workspace.name))}</p>"
-        f"<h2>{html.escape(board_doc_label)}</h2>"
-        f"<div class=\"mini-status-grid\">{rows}</div>"
-        f"<a class=\"primary-link\" href=\"/workspaces/{workspace.name}/documents/{board_doc_name}\">Abrir {html.escape(board_doc_label)}</a>"
-        "</article>"
-    )
+    try:
+        loaded = read_workspace_document(workspace.name, board_doc_name, iteraspec_root)
+    except (InvalidDocumentRequestError, DocumentNotFoundError):
+        return (
+            "<article class=\"home-panel\">"
+            f"<h3>{html.escape(_workspace_label(workspace.name))}</h3>"
+            f"<p>No existe <code>{html.escape(board_doc_name)}</code> en este workspace.</p>"
+            "</article>"
+        )
+    return render_board_view(loaded.content, workspace.name, iteraspec_root)
 
 
 def _render_home_current_task_section(workspace: IteraSpecWorkspace | None, iteraspec_root: Path) -> str:
@@ -3685,7 +3694,7 @@ def _render_home_section_content(
 ) -> tuple[str, str, str]:
     if current_section == "board":
         return (
-            "Board",
+            _preferred_board_document(focus_workspace) if focus_workspace else "board.md",
             "Estado del backlog del workspace actualmente enfocado.",
             _render_home_board_section(focus_workspace, iteraspec_root),
         )
