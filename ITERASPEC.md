@@ -280,6 +280,9 @@ IteraSpec must use stable Markdown structures for the workflow artifacts that th
 - **Canonical Format Rule:** The AI must treat the formats below as the canonical output for `status.md`, `backlog.md`, `board.md`, `staffing.md`, `current_task.md`, and `delivery.md`.
 - **GUI Compatibility Rule:** If the AI chooses another representation, it must preserve equivalent parseable markers for the GUI. Freeform tables or prose must not replace the canonical format unless the GUI explicitly supports them.
 - **Heading Stability Rule:** The AI must not rename the required headings in a way that removes their meaning or parseability.
+- **Canonical Key Stability Rule:** Canonical machine-readable keys such as `Active Feature`, `Current Phase`, `Phase State`, `Last Approved Phase`, `Active Task`, `Active Requirement`, `Last Updated At`, and `Next Expected Action` must be written exactly as defined in the canonical formats below. They must not be translated, localized, or replaced with synonyms.
+- **Global Status Scope Rule:** The global resume file `.iteraspec/workspaces/status.md` is the GUI-facing workflow checkpoint. If a feature workspace also contains a local `status.md`, that local file may add feature-specific context, but it must not replace or redefine the canonical role of the global status file.
+- **Language Boundary Rule:** The workflow language chosen by the user may affect prose, descriptions, notes, and free-text values, but it must not change canonical headings, required section names, or machine-readable keys used by the GUI parser.
 
 Canonical `backlog.md` format:
 
@@ -497,7 +500,8 @@ If the user requests a new feature, scope change, behavioral change, or any othe
 *   **Phase Owner:** `Discovery Lead`
 *   **Action:** The AI must first prompt the user with mandatory questions to define the scope, goals, and constraints of the system or change request (The "What" and "Why").
     *   *First Mandatory Question:* Ask the user which language they want to use for the entire workflow and development process.
-    *   *Language Rule:* The language selected by the user in this phase must be used consistently throughout the entire protocol, including questions, specifications, backlog items, status updates, documentation, and any other workflow artifacts unless the user explicitly approves a change.
+    *   *Language Rule:* The language selected by the user in this phase must be used consistently throughout the entire protocol, including questions, specifications, backlog items, documentation, and free-text status values unless the user explicitly approves a change.
+    *   *Language Boundary Reminder:* Canonical headings, required section names, and machine-readable keys defined by this protocol remain fixed even when the workflow language is Spanish or another non-English language.
     *   *Project State Question:* Ask whether the work applies to a new project or an existing codebase/system.
     *   *Mandatory Questions:* Workflow language, project state (new or existing), primary objective, target users, core problem solved, expected output/deliverables.
 *   **Persistence Rule:** The AI must update `.iteraspec/workspaces/status.md` during this phase so the current context, active feature if known, current phase, and next expected action are persisted even before `specs.md` exists.
